@@ -34,8 +34,9 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - 13 archétypes de Night City (un par rôle) avec biographie ; noms
   uniques dans le projet.
 - Jeu lancé avec le héros : partie normale, découverte ou wizard ;
-  avertissements (partie sauvegardée du héros, ou de « wizard » en mode
-  wizard ; jeu plus ancien que les sources ; mode refusé par `WIZARDS`
+  partie sauvegardée du héros (ou de « wizard » en mode wizard) à
+  reprendre, mettre de côté dans `parties/`, supprimer, ou remettre ;
+  avertissements (jeu plus ancien que les sources ; mode refusé par `WIZARDS`
   ou `EXPLORERS` de `sysconf` ; `NETHACKOPTIONS` qui désigne un
   fichier).
 - Dans tmux, jeu ouvert dans un panneau à côté de l'éditeur (ou une

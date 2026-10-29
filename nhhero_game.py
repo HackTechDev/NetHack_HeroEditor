@@ -16,6 +16,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import time
 
 import curses
 
@@ -25,6 +26,11 @@ from nhhero_i18n import _
 from nhhero_ui import Cancel
 
 DEFAULT_HACKDIR = os.path.expanduser("~/nh/install/games/lib/nethackdir")
+# parties sauvegardées mises de côté : parties/<nom>/<date>/<fichier>
+ASIDE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "parties")
+# extensions possibles d'une sauvegarde compressée (COMPRESS_EXTENSION)
+SAVE_EXTENSIONS = ("", ".gz", ".Z", ".bz2", ".xz", ".zst")
 
 # interfaces du jeu : (nom, variable WANT_WIN_<…> de make, objet compilé)
 INTERFACES = [("tty", "TTY", "wintty.o"), ("curses", "CURSES", "cursmain.o"),
@@ -118,12 +124,64 @@ def game_command(hackdir, h, role, race, mode=""):
         " ".join(shlex.quote(a) for a in args))
 
 
+def save_base(name):
+    """Nom du fichier de sauvegarde : uid puis nom, « . », « / » et
+    espaces changés en « _ » (regularize() du jeu)."""
+    return "%d%s" % (os.getuid(), re.sub(r"[./ ]", "_", name))
+
+
 def saved_game(hackdir, name):
     """Fichier de partie sauvegardée du héros, ou None."""
-    pat = os.path.join(hackdir, "save", "%d%s*" % (os.getuid(),
-                                                    glob.escape(name)))
-    found = glob.glob(pat)
-    return found[0] if found else None
+    for ext in SAVE_EXTENSIONS:
+        p = os.path.join(hackdir, "save", save_base(name) + ext)
+        if os.path.isfile(p):
+            return p
+    return None
+
+
+def set_aside(path, name, root=ASIDE_DIR):
+    """Range la sauvegarde path dans root/<nom>/<date>/ ; renvoie le
+    nouveau chemin."""
+    d = os.path.join(root, save_base(name), time.strftime("%Y%m%d-%H%M%S"))
+    os.makedirs(d, exist_ok=True)
+    dest = os.path.join(d, os.path.basename(path))
+    shutil.move(path, dest)
+    return dest
+
+
+def aside_games(name, root=ASIDE_DIR):
+    """Parties mises de côté du héros, la plus récente d'abord :
+    [(date « AAAAMMJJ-HHMMSS », chemin)]."""
+    base = os.path.join(root, save_base(name))
+    out = []
+    for stamp in sorted(os.listdir(base) if os.path.isdir(base) else [],
+                        reverse=True):
+        for f in sorted(glob.glob(os.path.join(glob.escape(base), stamp,
+                                               "*"))):
+            out.append((stamp, f))
+    return out
+
+
+def put_back(path, hackdir):
+    """Remet une partie mise de côté dans save/ du jeu (sans écraser une
+    sauvegarde) ; renvoie le chemin, ou None si la place est prise."""
+    dest = os.path.join(hackdir, "save", os.path.basename(path))
+    if os.path.exists(dest):
+        return None
+    shutil.move(path, dest)
+    for empty in (os.path.dirname(path), os.path.dirname(
+            os.path.dirname(path))):
+        try:
+            os.rmdir(empty)
+        except OSError:
+            break
+    return dest
+
+
+def stamp_text(stamp):
+    """« 20261029-191510 » → « 2026-10-29 19:15 »."""
+    mo = re.match(r"^(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)", stamp)
+    return "%s-%s-%s %s:%s" % mo.groups() if mo else stamp
 
 
 def sysconf(hackdir):
@@ -402,6 +460,52 @@ class Game:
                 return True
         return False
 
+    def choose_save(self, d, name):
+        """Partie sauvegardée de name : la reprendre, la mettre de côté
+        ou la supprimer ; sans sauvegarde, en remettre une mise de côté.
+        Renvoie True si le jeu reprendra une partie ; lève Cancel."""
+        path = saved_game(d, name)
+        if path:
+            i = self.menu(_("Partie sauvegardée de « %s »") % name, [
+                (_("La reprendre"), _("le jeu ignore alors les options "
+                                      "du héros")),
+                (_("La mettre de côté, nouvelle partie"),
+                 _("rangée dans parties/ de l'éditeur, à remettre plus "
+                   "tard")),
+                (_("La supprimer, nouvelle partie"), _("définitif"))],
+                filterable=False)
+            if i == 0:
+                return True
+            if i == 1:
+                try:
+                    set_aside(path, name)
+                except OSError as e:
+                    self.message_box(_("Impossible de ranger la partie"),
+                                     [str(e)])
+                    raise Cancel()
+                return False
+            if not self.confirm(_("Supprimer définitivement la partie "
+                                  "sauvegardée de « %s » ?\n\n%s") % (
+                                      name, path), _("Supprimer")):
+                raise Cancel()
+            os.remove(path)
+            return False
+        aside = aside_games(name)
+        if not aside:
+            return False
+        i = self.menu(_("Parties de « %s » mises de côté") % name,
+                      [(_("Nouvelle partie"), "")] +
+                      [(_("Reprendre celle du %s") % stamp_text(s),
+                        os.path.basename(p)) for s, p in aside[:9]],
+                      filterable=False)
+        if i == 0:
+            return False
+        if not put_back(aside[i - 1][1], d):
+            self.message_box(_("Impossible de remettre la partie"), [
+                _("Une sauvegarde occupe déjà sa place dans save/.")])
+            raise Cancel()
+        return True
+
     def play(self):
         """j : jouer avec le héros choisi."""
         h = self.hero()
@@ -413,6 +517,11 @@ class Game:
                 _("Pas d'exécutable nethack installé. Compilez (m) puis"),
                 _("mettez à jour le jeu (U), ou indiquez son dossier avec"),
                 "NHHEROEDIT_HACKDIR."])
+            return
+        tmuxed = self.use_tmux()
+        if tmuxed and self.game_alive():
+            self.msg = _("Une partie est déjà ouverte (%s).") % \
+                self.game_where
             return
         g = self.game()
         role, race = g.role(h["role"]), g.race(h["race"])
@@ -452,11 +561,15 @@ class Game:
                           % (who or _("personne")),
                           _("  le jeu partira en partie normale."), ""]
         save_name = "wizard" if mode == "-D" else h["name"]
-        if saved_game(d, save_name):
-            lines += [_("⚠ Une partie sauvegardée de « %s » existe : le jeu"
-                        " la") % save_name,
-                      _("  reprendra, sans tenir compte des options du "
-                        "héros."), ""]
+        try:
+            resume = self.choose_save(d, save_name)
+        except Cancel:
+            return
+        if resume:
+            lines += [_("Le jeu reprend la partie sauvegardée de « %s » :")
+                      % save_name,
+                      _("  les options du héros ne servent qu'à une "
+                        "nouvelle partie."), ""]
         if mode == "-D":
             lines += [_("En mode wizard, le jeu nomme toujours le héros "
                         "« wizard » :"),
@@ -470,11 +583,6 @@ class Game:
                         "le rôle"),
                       _("et la race sont transmis (ligne de commande)."), ""]
         lines += ["  " + o for o in D.hero_options(h, role, race)]
-        tmuxed = self.use_tmux()
-        if tmuxed and self.game_alive():
-            self.msg = _("Une partie est déjà ouverte (%s).") % \
-                self.game_where
-            return
         if tmuxed:
             lines += ["", _("Le jeu s'ouvrira dans tmux, à côté de "
                             "l'éditeur.")]

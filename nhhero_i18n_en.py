@@ -233,8 +233,6 @@ EN = {
         '  integrate (I), compile (m) and update (U) to',
     '  jouer avec les rôles modifiés.':
         '  play with the changed roles.',
-    '  reprendra, sans tenir compte des options du héros.':
-        "  resume it, ignoring the hero's options.",
     'NETHACKOPTIONS désigne un fichier : seuls le nom, le rôle':
         'NETHACKOPTIONS names a file: only the name, role',
     'et la race sont transmis (ligne de commande).':
@@ -247,8 +245,6 @@ EN = {
         'No nethack executable installed. Compile (m) then',
     'mettez à jour le jeu (U), ou indiquez son dossier avec':
         'update the game (U), or give its directory with',
-    '⚠ Une partie sauvegardée de « %s » existe : le jeu la':
-        '⚠ A saved game of « %s » exists: the game will',
     'À corriger avant de jouer :':
         'To fix before playing:',
     'Jouer avec %s':
@@ -1083,4 +1079,38 @@ EN = {
         'The game will open in tmux, next to the editor.',
     "NetHack lancé (%s) ; l'historique se met à jour à la fin de la partie.":
         'NetHack started (%s); the history is updated at the end of the game.',
+    'Le jeu reprend la partie sauvegardée de « %s » :':
+        'The game resumes the saved game of « %s »:',
+    "  les options du héros ne servent qu'à une nouvelle partie.":
+        "  the hero's options only apply to a new game.",
+    'Partie sauvegardée de « %s »':
+        'Saved game of « %s »',
+    'La reprendre':
+        'Resume it',
+    'le jeu ignore alors les options du héros':
+        "the game then ignores the hero's options",
+    'La mettre de côté, nouvelle partie':
+        'Set it aside, new game',
+    "rangée dans parties/ de l'éditeur, à remettre plus tard":
+        "stored in the editor's parties/, to put back later",
+    'La supprimer, nouvelle partie':
+        'Delete it, new game',
+    'définitif':
+        'permanent',
+    'Impossible de ranger la partie':
+        'Cannot set the game aside',
+    'Supprimer définitivement la partie sauvegardée de « %s » ?\n\n%s':
+        'Permanently delete the saved game of « %s »?\n\n%s',
+    'Supprimer':
+        'Delete',
+    'Parties de « %s » mises de côté':
+        'Games of « %s » set aside',
+    'Nouvelle partie':
+        'New game',
+    'Reprendre celle du %s':
+        'Resume the one of %s',
+    'Impossible de remettre la partie':
+        'Cannot put the game back',
+    'Une sauvegarde occupe déjà sa place dans save/.':
+        'A saved game already takes its place in save/.',
 }

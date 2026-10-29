@@ -120,8 +120,12 @@ peindre, clic droit pipette, molette pour la couleur.
 
 `j` lance NetHack avec le héros (options passées par `NETHACKOPTIONS`,
 en plus de votre `.nethackrc`) : partie normale, mode découverte (`-X`)
-ou mode wizard (`-D`). L'éditeur prévient si une partie sauvegardée du
-héros existe (le jeu la reprend), si le jeu installé est plus ancien
+ou mode wizard (`-D`). Si le héros a une partie sauvegardée, l'éditeur
+propose de la reprendre (le jeu ignore alors les options du héros), de
+la **mettre de côté** dans `parties/` de l'éditeur pour en commencer une
+nouvelle, ou de la supprimer ; une partie mise de côté se remet de la
+même façon, quand le héros n'a plus de sauvegarde. Il prévient aussi si
+le jeu installé est plus ancien
 que les sources modifiées, ou si `sysconf` (`WIZARDS`, `EXPLORERS`) ne
 vous permet pas le mode choisi. En mode wizard, le jeu nomme toujours
 le héros « wizard » (sa partie sauvegardée reste ainsi à part de la

@@ -353,6 +353,27 @@ class TestBuild(unittest.TestCase):
 
 
 class TestGame(unittest.TestCase):
+    def test_saves(self):
+        """Sauvegarde trouvée par son nom exact, mise de côté, remise."""
+        with tempfile.TemporaryDirectory() as d:
+            os.makedirs(os.path.join(d, "save"))
+            uid = os.getuid()
+            for f in ("%dKestrel2" % uid, "%dDr_No.gz" % uid):
+                open(os.path.join(d, "save", f), "w").close()
+            self.assertIsNone(G.saved_game(d, "Kestrel"))
+            p = G.saved_game(d, "Dr.No")
+            self.assertTrue(p.endswith("%dDr_No.gz" % uid))
+            aside = os.path.join(d, "aside")
+            q = G.set_aside(p, "Dr.No", aside)
+            self.assertIsNone(G.saved_game(d, "Dr.No"))
+            self.assertEqual([x[1] for x in G.aside_games("Dr.No", aside)],
+                             [q])
+            self.assertEqual(G.put_back(q, d), p)
+            self.assertEqual(G.aside_games("Dr.No", aside), [])
+            q = G.set_aside(p, "Dr.No", aside)
+            open(p, "w").close()
+            self.assertIsNone(G.put_back(q, d))      # place prise
+
     def test_mode_allowed(self):
         """Droits des modes -D et -X lus dans sysconf, comme le jeu."""
         import pwd
