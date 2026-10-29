@@ -423,6 +423,25 @@ class TestTiles(unittest.TestCase):
         self.assertEqual(moved[4], "...........BBBBB")    # le reste sort
         self.assertEqual(D.apply_layer(t, ["A"], -1, 0), t)
 
+    def test_images(self):
+        import struct
+        import zlib
+        t = D.apply_layer(D.blank_tile(), D.LAYERS[0][1])
+        png = D.tile_png(t, scale=2)
+        self.assertTrue(png.startswith(b"\x89PNG\r\n\x1a\n"))
+        w, h = struct.unpack(">II", png[16:24])
+        self.assertEqual((w, h), (32, 32))
+        n = struct.unpack(">I", png[33:37])[0]
+        self.assertEqual(png[37:41], b"IDAT")
+        raw = zlib.decompress(png[41:41 + n])
+        self.assertEqual(len(raw), 32 * (1 + 32 * 3))
+        line = raw[10 * 97:11 * 97]         # ligne 10 = case 5 de la tuile
+        self.assertEqual(tuple(line[1 + 3 * 10:1 + 3 * 11]), (0, 182, 255))
+        svg = D.tile_svg(t, title="Solo <f>")
+        self.assertIn("<title>Solo &lt;f></title>", svg)
+        self.assertIn('<rect x="5" y="5" width="6" height="1" '
+                      'fill="#00b6ff"/>', svg)
+
 
 class TestDisplay(unittest.TestCase):
     def test_display_profile(self):

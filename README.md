@@ -124,6 +124,10 @@ manteau long ou arme. Le calque est placé pour la silhouette des héros
 du jeu ; les flèches le déplacent, Entrée le pose (une annulation `u`),
 Échap y renonce.
 
+`e` exporte la tuile en image, agrandie huit fois : PNG 128×128 ou SVG
+(net à toute taille), à côté du projet sous le nom
+`<héros>-<sexe>.png` proposé.
+
 ## Touches
 
 | Touche | Action |

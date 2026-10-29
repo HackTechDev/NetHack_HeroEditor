@@ -1229,4 +1229,16 @@ EN = {
         'Layer %s: arrows to place it, Enter to apply, Escape to cancel',
     'Calque Night City':
         'Night City layer',
+    'e : exporter en image (PNG, SVG)':
+        'e : export as an image (PNG, SVG)',
+    'Exporter la tuile':
+        'Export the tile',
+    'image %dx%d':
+        '%dx%d image',
+    'dessin vectoriel, net à toute taille':
+        'vector drawing, sharp at any size',
+    "Écrire l'image dans":
+        'Write the image to',
+    'Image écrite : %s':
+        'Image written: %s',
 }

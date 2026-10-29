@@ -9,6 +9,8 @@ retrait des modifications de l'éditeur) est dans nhhero_install.
 """
 
 import re
+import struct
+import zlib
 
 from nhhero_i18n import _
 
@@ -1025,3 +1027,48 @@ def role_problems(role, race, mod, objects):
 
 def blank_tile():
     return ["." * TILE_SIZE for _i in range(TILE_SIZE)]
+
+
+# --- tuile en image (e dans l'éditeur de pixels) ----------------------------
+
+TILE_SCALE = 8      # une case de la tuile = 8x8 pixels
+
+
+def tile_png(tile, scale=TILE_SCALE):
+    """PNG (RVB, sans bibliothèque) de la tuile agrandie."""
+    rgb = dict(TILE_PALETTE)
+    raw = b""
+    for r in tile:
+        line = b"\0" + b"".join(bytes(rgb[c]) * scale for c in r)
+        raw += line * scale
+
+    def chunk(kind, data):
+        return struct.pack(">I", len(data)) + kind + data + struct.pack(
+            ">I", zlib.crc32(kind + data) & 0xffffffff)
+    w, h = len(tile[0]) * scale, len(tile) * scale
+    return (b"\x89PNG\r\n\x1a\n"
+            + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+
+
+def tile_svg(tile, scale=TILE_SCALE, title=""):
+    """SVG de la tuile : un rectangle par suite de cases de même couleur."""
+    rgb = dict(TILE_PALETTE)
+    w, h = len(tile[0]) * scale, len(tile) * scale
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
+           'viewBox="0 0 %d %d" shape-rendering="crispEdges">'
+           % (w, h, len(tile[0]), len(tile))]
+    if title:
+        out.append("<title>%s</title>" % title.replace("&", "&amp;")
+                   .replace("<", "&lt;"))
+    for y, r in enumerate(tile):
+        x = 0
+        while x < len(r):
+            n = 1
+            while x + n < len(r) and r[x + n] == r[x]:
+                n += 1
+            out.append('<rect x="%d" y="%d" width="%d" height="1" '
+                       'fill="#%02x%02x%02x"/>' % ((x, y, n) + rgb[r[x]]))
+            x += n
+    out.append("</svg>")
+    return "\n".join(out) + "\n"

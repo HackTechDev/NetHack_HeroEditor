@@ -17,7 +17,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | 2. Vérification | 0 / 6 | tout |
 | 3. Héros et parties | 7 / 7 | — |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
-| 5. Tuiles | 2 / 4 | 5.3, 5.4 |
+| 5. Tuiles | 3 / 4 | 5.4 |
 | 6. Projets et fichiers | 0 / 3 | tout |
 | 7. Liens avec les autres outils | 0 / 3 | tout |
 | 8. Qualité du projet | 0 / 5 | tout |
@@ -184,8 +184,9 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    de pixels : visière, implants, bras mécanique, manteau long, arme
    (`LAYERS` dans `nhhero_data.py`, espace = transparent), à déplacer
    avec les flèches avant de les poser.
-3. **Export en image** **[facile]**. Écrire la tuile en PNG ou en SVG
-   (agrandie), pour la partager ou l'utiliser hors du jeu.
+3. **Export en image** **[facile]** — ✅ **Fait**. `e` dans l'éditeur de
+   pixels écrit la tuile agrandie huit fois en PNG (écrit sans
+   bibliothèque, `tile_png`) ou en SVG (`tile_svg`).
 4. **Aperçu en couleurs réelles** **[facile]**. Dans un terminal à
    256 couleurs, l'aperçu en demi-blocs est approché : proposer les
    couleurs vraies (24 bits) quand le terminal les accepte.

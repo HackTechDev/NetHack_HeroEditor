@@ -632,13 +632,42 @@ class Popups:
 
     # --- éditeur de tuile -------------------------------------------------
 
+    def export_image(self, tile, base, title):
+        """Écrit la tuile en PNG ou en SVG, agrandie (D.TILE_SCALE)."""
+        try:
+            svg = self.menu(_("Exporter la tuile"), [
+                ("PNG", _("image %dx%d") % (D.TILE_SIZE * D.TILE_SCALE,
+                                            D.TILE_SIZE * D.TILE_SCALE)),
+                ("SVG", _("dessin vectoriel, net à toute taille"))],
+                filterable=False) == 1
+            path = os.path.expanduser(self.input_line(
+                _("Écrire l'image dans"), base + (".svg" if svg else ".png")))
+        except Cancel:
+            return
+        if os.path.exists(path) and not self.confirm(
+                _("Remplacer %s ?") % path):
+            return
+        try:
+            if svg:
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(D.tile_svg(tile, title=title))
+            else:
+                with open(path, "wb") as f:
+                    f.write(D.tile_png(tile))
+        except OSError as e:
+            self.message_box(_("Écriture impossible"), [str(e)])
+            return
+        self.message_box(_("Exporter la tuile"),
+                         [_("Image écrite : %s") % path])
+
     def tile_editor(self, tile, title, importer=None, original=None,
-                    other=None):
+                    other=None, image=None):
         """Dessin d'une tuile 16x16. Échap garde le dessin, q propose de
         l'abandonner ; renvoie la tuile retenue. importer() : tuile
         choisie dans le jeu (ou None) ; original : tuile du jeu, que o
         rétablit ; other : (titre, tuile) de l'autre sexe, montrée à
-        côté et que c recopie."""
+        côté et que c recopie ; image : chemin proposé (sans extension)
+        pour l'export en PNG ou SVG (e)."""
         pal = [c for c, _ in D.TILE_PALETTE]
         rgb = dict(D.TILE_PALETTE)
         grid = [list(r) for r in tile]
@@ -659,6 +688,7 @@ class Popups:
             _("o : tuile d'origine du rôle") + (
                 _("   c : copier l'autre sexe") if other else ""),
             _("l : poser un calque Night City (visière, bras...)"),
+            _("e : exporter en image (PNG, SVG)"),
             _("x : tout effacer  u : annuler  q : abandonner"),
             _("souris : clic peindre, clic droit pipette,"),
             _("         molette couleur     Échap : terminer"),
@@ -831,6 +861,9 @@ class Popups:
                     except Cancel:
                         continue
                     layer = [D.LAYERS[n][0], D.LAYERS[n][1], 0, 0]
+                elif k == "e" and image:
+                    self.export_image(["".join(r) for r in grid], image,
+                                      title)
                 elif k == "c" and other:
                     save()
                     grid = [list(r) for r in other[1]]
