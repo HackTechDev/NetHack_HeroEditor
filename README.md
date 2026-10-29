@@ -147,7 +147,11 @@ que les sources modifiées. `x` écrit les options dans
 
 2. **`m` — compiler**, 3. **`U` — mettre à jour le jeu installé**
    (`make update` garde `sysconf`, scores et sauvegardes), 4. **`j` —
-   jouer**.
+   jouer**. `m` et `U` recompilent avec les interfaces du dernier build
+   (`WANT_WIN_TTY=1 WANT_WIN_CURSES=1…`, lues dans `dat/options`) : un
+   simple `make` ne ferait qu'un jeu tty, sans curses ni les tuiles des
+   versions X11 et Qt. Les options `make` de la configuration qui
+   contiennent `WANT_…` sont prises telles quelles.
 
 Les rôles ne changent pas la liste des monstres : les parties
 sauvegardées restent lisibles (`EDITLEVEL` n'est pas touché).

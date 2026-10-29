@@ -963,4 +963,6 @@ EN = {
         'title « %s »: translated differently for the role %s (only one translation is possible)',
     "titre « %s » : le jeu l'emploie déjà (%s) ; sa traduction y changera aussi — un autre titre anglais l'évite":
         'title « %s »: the game already uses it (%s); its translation will change there too — another English title avoids it',
+    " (tuiles : le jeu compilé n'a ni X11 ni Qt, qui seuls les affichent)":
+        ' (tiles: the compiled game has neither X11 nor Qt, the only ones that show them)',
 }

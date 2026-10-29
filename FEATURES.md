@@ -74,4 +74,7 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   rétablissement d'une sauvegarde, commit git proposé.
 - État du rôle dans l'aperçu : d'origine, modifié non intégré, intégré,
   intégré puis modifié, modifié dans les sources par un autre projet.
-- Compilation (`make`) et mise à jour du jeu installé (`make update`).
+- Compilation (`make`) et mise à jour du jeu installé (`make update`)
+  avec les interfaces du dernier build (lues dans `dat/options`) :
+  curses, X11 et Qt restent, les tuiles X11 et Qt sont refaites ;
+  avertissement quand des tuiles changent sans X11 ni Qt compilés.

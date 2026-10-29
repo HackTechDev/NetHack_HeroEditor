@@ -9,6 +9,7 @@ self.run_external() sont fournis par nhheroedit.Editor.
 
 import glob
 import os
+import re
 import shlex
 
 import nhhero_data as D
@@ -17,6 +18,58 @@ from nhhero_i18n import _
 from nhhero_ui import Cancel
 
 DEFAULT_HACKDIR = os.path.expanduser("~/nh/install/games/lib/nethackdir")
+
+# interfaces du jeu : (nom, variable WANT_WIN_<…> de make, objet compilé)
+INTERFACES = [("tty", "TTY", "wintty.o"), ("curses", "CURSES", "cursmain.o"),
+              ("X11", "X11", "winX.o"), ("Qt", "QT", "qt_main.o")]
+GRAPHIC = ("X11", "Qt")          # les seules qui affichent les tuiles
+
+
+def build_interfaces(src):
+    """(interfaces, interface par défaut) du dernier build des sources,
+    d'après dat/options (écrit par makedefs à chaque compilation), sinon
+    d'après les fichiers objets ; ([], None) si rien n'est compilé."""
+    try:
+        with open(os.path.join(src, "dat", "options"),
+                  encoding="utf-8") as f:
+            text = f.read()
+    except OSError:
+        text = ""
+    mo = re.search(r"Supported windowing systems?:\n\s*\n(.*?)\n\s*\n", text,
+                   re.S)
+    if mo:
+        quoted = re.findall(r'"([^"]+)"', mo.group(1))
+        names = [n for n, _w, _o in INTERFACES if n in quoted]
+        dm = re.search(r'default of "([^"]+)"', mo.group(1))
+        if names:
+            return names, dm.group(1) if dm else names[0]
+    names = [n for n, _w, o in INTERFACES
+             if os.path.isfile(os.path.join(src, "src", o))]
+    return names, names[0] if names else None
+
+
+def make_flags(src):
+    """Variables de make qui refont le jeu avec les mêmes interfaces que
+    le dernier build : sans elles, « make » ne fait qu'un jeu tty, sans
+    les tuiles des versions X11 et Qt."""
+    names, default = build_interfaces(src)
+    flags = ["WANT_WIN_%s=1" % w for n, w, _o in INTERFACES if n in names]
+    if names and default != names[0]:
+        flags.append("WANT_DEFAULT=%s" % default)
+    return flags
+
+
+def make_command(src, target="", opts=""):
+    """Commande make : opts (configuration) ou -jN, plus les interfaces
+    du dernier build si opts n'en choisit pas. Pour « update », seules
+    les variables WANT_… sont gardées (pas de compilation parallèle)."""
+    if target == "update":
+        opts = " ".join(o for o in opts.split() if o.startswith("WANT_"))
+    else:
+        opts = opts or "-j%d" % (os.cpu_count() or 2)
+    if "WANT_" not in opts:
+        opts = " ".join([opts] + make_flags(src))
+    return " ".join(x for x in ("make", target, opts.strip()) if x)
 
 
 def game_env(hackdir, options):
@@ -70,7 +123,7 @@ class Game:
     def outdated_game(self, hackdir):
         """Le jeu installé est-il plus ancien que les sources touchées ?"""
         exe = os.path.getmtime(os.path.join(hackdir, "nethack"))
-        for rel in (I.ROLE_C, I.U_INIT_C):
+        for rel in I.ALL_FILES:
             p = os.path.join(self.src, rel)
             if os.path.isfile(p) and os.path.getmtime(p) > exe:
                 return True

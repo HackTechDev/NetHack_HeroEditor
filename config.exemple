@@ -9,9 +9,10 @@
 sources = ~/JEUX/NETHACK/NetHack-5.0.0
 ; jeu installé (défaut : ~/nh/install/games/lib/nethackdir)
 repertoire = ~/nh/install/games/lib/nethackdir
-; options de « make » pour la touche m (défaut : -j<nombre de cœurs>) ;
-; WANT_WIN_ALL=1 refait aussi les tuiles des versions Qt et X11
-make = -j8 WANT_WIN_ALL=1
+; options de « make » pour les touches m et U (défaut : -j<nombre de
+; cœurs>) ; sans WANT_WIN_…, l'éditeur reprend les interfaces du dernier
+; build (lues dans dat/options), ce qui refait aussi les tuiles X11 et Qt
+make = -j8
 
 [editeur]
 ; projet ouvert quand aucun n'est donné (défaut : heros.json)

@@ -295,6 +295,31 @@ class TestInstall(unittest.TestCase):
         self.assertTrue(any("aucune race" in m for _g, m in res))
 
 
+class TestBuild(unittest.TestCase):
+    def test_interfaces(self):
+        """Les interfaces du dernier build viennent de dat/options ; make
+        les reprend pour ne pas refaire un jeu tty seul."""
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(G.build_interfaces(d), ([], None))
+            os.makedirs(os.path.join(d, "dat"))
+            with open(os.path.join(d, "dat", "options"), "w") as f:
+                f.write('Supported windowing systems:\n\n    "tty" (text), '
+                        '"curses"\n    (terminal), "X11", and "Qt", with a '
+                        'default of "curses".\n\nNetHack 5.0\n')
+            self.assertEqual(G.build_interfaces(d),
+                             (["tty", "curses", "X11", "Qt"], "curses"))
+            self.assertEqual(
+                G.make_command(d, "", "-j2"),
+                "make -j2 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 WANT_WIN_X11=1 "
+                "WANT_WIN_QT=1 WANT_DEFAULT=curses")
+            self.assertEqual(G.make_command(d, "update", "-j2 WANT_WIN_ALL=1"),
+                             "make update WANT_WIN_ALL=1")
+            with open(os.path.join(d, "dat", "options"), "w") as f:
+                f.write('Supported windowing system:\n\n    "tty" (text).'
+                        '\n\nNetHack\n')
+            self.assertEqual(G.build_interfaces(d), (["tty"], "tty"))
+
+
 class TestProject(unittest.TestCase):
     def test_save_load(self):
         with tempfile.TemporaryDirectory() as d:

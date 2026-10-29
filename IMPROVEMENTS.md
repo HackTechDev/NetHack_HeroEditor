@@ -13,7 +13,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 
 | Thème | Fait | Reste |
 |---|---|---|
-| 1. Limites connues | 2 / 6 | 1.3 à 1.6 |
+| 1. Limites connues | 3 / 6 | 1.4 à 1.6 |
 | 2. Vérification | 0 / 6 | tout |
 | 3. Héros et parties | 0 / 7 | tout |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
@@ -46,11 +46,13 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    et avertit dans l'aperçu, la vérification `v` et à la saisie ; il
    signale aussi un même titre traduit différemment par deux rôles du
    projet.
-3. **Tuiles des versions graphiques non régénérées** **[facile]**. `m`
-   lance un simple `make`, qui ne refait pas toujours `x11tiles` et
-   `nhtiles.bmp`. Détecter les interfaces du jeu installé et prévenir,
-   ou compiler avec `WANT_WIN_ALL=1` quand Qt et X11 sont disponibles
-   (sur la machine de test, les en-têtes Qt manquent).
+3. **Tuiles des versions graphiques non régénérées** **[facile]** —
+   ✅ **Fait**. `m` lançait un simple `make`, qui ne refait qu'un jeu
+   tty : sans curses, X11 ni Qt, et sans `x11tiles` ni `nhtiles.bmp`
+   (`U` l'aurait installé). `m` et `U` reprennent maintenant les
+   interfaces du dernier build, lues dans `dat/options` (ou d'après les
+   fichiers objets), et l'intégration prévient quand des tuiles changent
+   alors que ni X11 ni Qt ne sont compilés.
 4. **Un seul projet par jeu** **[moyen]**. Une intégration remplace
    toutes les modifications de rôles faites avant, même par un autre
    projet. Retenir le projet d'origine de chaque rôle intégré et

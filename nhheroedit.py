@@ -25,6 +25,7 @@ import nhhero_config as C
 import nhhero_data as D
 from nhhero_i18n import _
 import nhhero_install as I
+import nhhero_game as G
 from nhhero_game import Game
 import nhhero_project as P
 import nhhero_templates as T
@@ -1671,6 +1672,11 @@ class Editor(Popups, Game):
         if self.modified:
             self.save()
         self.msg = _("Intégré : %d fichier(s) — m pour compiler") % len(ch)
+        names, _d = G.build_interfaces(self.src)
+        if names and not set(names) & set(G.GRAPHIC) and \
+                any(I.TILES == rel for rel in ch):
+            self.msg += _(" (tuiles : le jeu compilé n'a ni X11 ni Qt, "
+                          "qui seuls les affichent)")
         self.offer_commit(ch, I.commit_message(g, self.roles))
 
     def offer_commit(self, changed, message):
@@ -1794,8 +1800,8 @@ class Editor(Popups, Game):
                 _("Pas de Makefile : configurez d'abord les sources :"),
                 "  cd sys/unix && sh setup.sh hints/linux.500"])
             return
-        opts = self.config.get("make") or "-j%d" % (os.cpu_count() or 2)
-        rc = self.run_external(_("compilation"), "make " + opts, self.src)
+        rc = self.run_external(_("compilation"), G.make_command(
+            self.src, "", self.config.get("make", "")), self.src)
         self.msg = _("Compilation réussie — U pour mettre à jour le jeu") \
             if rc == 0 else _("La compilation a échoué (code %d)") % rc
 
@@ -1807,8 +1813,8 @@ class Editor(Popups, Game):
                   "sysconf, scores et dossier save sont conservés ;\n"
                   "le jeu précédent est gardé en nethack.old.")):
             return
-        rc = self.run_external(_("mise à jour du jeu"), "make update",
-                               self.src)
+        rc = self.run_external(_("mise à jour du jeu"), G.make_command(
+            self.src, "update", self.config.get("make", "")), self.src)
         self.msg = _("Jeu mis à jour — j pour jouer") if rc == 0 \
             else _("make update a échoué (code %d)") % rc
 
