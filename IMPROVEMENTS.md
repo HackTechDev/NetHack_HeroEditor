@@ -20,7 +20,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | 5. Tuiles | 4 / 4 | — |
 | 6. Projets et fichiers | 0 / 3 | tout |
 | 7. Liens avec les autres outils | 3 / 3 | — |
-| 8. Qualité du projet | 0 / 5 | tout |
+| 8. Qualité du projet | 1 / 5 | 8.1, 8.3 à 8.5 |
 
 Prochaine étape conseillée : les **compétences** du rôle (4.1), qui
 complètent l'inventaire de départ.
@@ -228,9 +228,11 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    `nhhero_config.py` et `nhhero_i18n.py` sont des copies adaptées de
    nhmonedit : une bibliothèque partagée éviterait de corriger deux
    fois le même défaut.
-2. **Tutoriel et capture d'écran** **[facile]**. Un `TUTORIAL.md` qui
-   crée un héros de A à Z, et une capture dans le README, comme pour
-   nhmonedit.
+2. **Tutoriel et capture d'écran** **[facile]** — ✅ **Fait**.
+   `TUTORIAL.md` crée Nyx, netrunneuse, de l'archétype à la partie
+   (options, affichage, rang, or, intrinsèques, inventaire, tuile,
+   intégration, jeu, historique), parcours vérifié dans l'éditeur ;
+   capture `docs/capture.png` en tête du README.
 3. **Tests de l'interface** **[moyen]**. Piloter l'éditeur dans un
    terminal simulé (tmux) : création d'un héros, inventaire, tuile,
    intégration.

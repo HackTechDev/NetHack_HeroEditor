@@ -9,7 +9,11 @@ dieux, races permises, tuile) et de les intégrer aux sources du jeu.
 
 Il complète l'éditeur de cartes `../NetHack_MapEditor` et l'éditeur de
 monstres `../NetHack_MonsterEditor`, dont il reprend l'interface.
-La liste complète des fonctions est dans [FEATURES.md](FEATURES.md).
+
+**Premiers pas :** le [tutoriel](TUTORIAL.md) crée une héroïne de A à Z ;
+la liste complète des fonctions est dans [FEATURES.md](FEATURES.md).
+
+![L'éditeur en 120 colonnes : liste des héros, fiche et aperçu avec la tuile](docs/capture.png)
 
 ## Lancement
 
