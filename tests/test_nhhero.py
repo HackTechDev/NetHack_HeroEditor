@@ -53,6 +53,18 @@ class TestParser(unittest.TestCase):
         self.assertEqual(D.c_mask(g.items[1]), {"3", "B"})
         self.assertEqual(D.c_string(g.items[2]), 's"t')
 
+    def test_po_multiline(self):
+        """Une traduction sur plusieurs lignes est remplacée sans entrée en
+        double, et rendue à l'identique au retrait."""
+        po = ('msgid "A"\nmsgstr "a"\n\n#, c-format\nmsgctxt "feminine"\n'
+              'msgid "B"\nmsgstr ""\n"long "\n"titre"\n')
+        t = I.po_set(I.po_set(po, "feminine", "B", "neuf"), None, "A", "aa")
+        self.assertEqual(t.count('msgid "B"'), 1)
+        self.assertEqual(D.parse_po(t), {(None, "A"): "aa",
+                                         ("feminine", "B"): "neuf"})
+        self.assertEqual(I.strip_po(t), po)
+        self.assertEqual(I.po_set(po, "feminine", "B", "long titre"), po)
+
     def test_strength(self):
         self.assertEqual(D.c_int(D.Leaf("STR18(100)", 0, 0)), 118)
         self.assertEqual(D.attr_text(118), "18/**")

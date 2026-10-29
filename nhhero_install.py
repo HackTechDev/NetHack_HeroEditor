@@ -90,8 +90,10 @@ TILE_RE = re.compile(
     r"^\{\n(?:  \S+\n)+\}\n# %s:orig (.+?)\n((?:#   \S+\n)+)"
     r"# %s:end \1\n" % (TAG, TAG), re.M)
 PO_ADDED_RE = re.compile(r"\n# %s: added\n(?:msg.*\n)+" % TAG)
-PO_ORIG_RE = re.compile(r"^# %s:orig (\".*\")\n((?:msgctxt .*\n)?"
-                        r"msgid .*\n)msgstr .*\n" % TAG, re.M)
+# traduction d'origine : première ligne, puis lignes de suite (« orig+ »)
+PO_ORIG_RE = re.compile(r"^# %s:orig (\".*\")\n((?:# %s:orig\+ \".*\"\n)*)"
+                        r"((?:msgctxt .*\n)?msgid .*\n)msgstr .*\n"
+                        % (TAG, TAG), re.M)
 
 
 def strip_c(text):
@@ -109,8 +111,12 @@ def strip_tiles(text):
 
 def strip_po(text):
     text = PO_ADDED_RE.sub("", text)
-    return PO_ORIG_RE.sub(lambda mo: mo.group(2) + "msgstr " + mo.group(1)
-                          + "\n", text)
+
+    def orig(mo):
+        more = "".join(l[len("# %s:orig+ " % TAG):] + "\n"
+                       for l in mo.group(2).splitlines())
+        return mo.group(3) + "msgstr " + mo.group(1) + "\n" + more
+    return PO_ORIG_RE.sub(orig, text)
 
 
 STRIP = {ROLE_C: strip_c, U_INIT_C: strip_c, INSIGHT_C: strip_c,
@@ -520,8 +526,11 @@ def _po_q(s):
 
 
 def _po_entry_re(ctx, msgid):
+    """Entrée (contexte, msgid) : groupe 1 l'en-tête (msgctxt, msgid),
+    groupe 2 les lignes de la traduction (une, ou "" puis des lignes de
+    suite)."""
     head = (r"msgctxt %s\n" % re.escape(_po_q(ctx))) if ctx else ""
-    return re.compile(r"^(%smsgid %s\n)(msgstr (\".*\")\n)(?!\")" % (
+    return re.compile(r"^(%smsgid %s\n)msgstr ((?:\".*\"\n)+)" % (
         head, re.escape(_po_q(msgid))), re.M)
 
 
@@ -543,10 +552,13 @@ def po_set(text, ctx, msgid, value):
     entrée est ajoutée à la fin."""
     mo = po_find(text, ctx, msgid)
     if mo:
-        if mo.group(3) == _po_q(value):
+        lines = mo.group(2).splitlines()
+        if D._po_unquote([l[1:-1] for l in lines]) == value:
             return text
-        return text[:mo.start()] + "# %s:orig %s\n" % (TAG, mo.group(3)) + \
-            mo.group(1) + "msgstr %s\n" % _po_q(value) + text[mo.end():]
+        orig = "# %s:orig %s\n" % (TAG, lines[0]) + \
+            "".join("# %s:orig+ %s\n" % (TAG, l) for l in lines[1:])
+        return text[:mo.start()] + orig + mo.group(1) + \
+            "msgstr %s\n" % _po_q(value) + text[mo.end():]
     return text + "\n# %s: added\n%smsgid %s\nmsgstr %s\n" % (
         TAG, "msgctxt %s\n" % _po_q(ctx) if ctx else "", _po_q(msgid),
         _po_q(value))

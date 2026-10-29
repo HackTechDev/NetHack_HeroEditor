@@ -13,7 +13,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 
 | Thème | Fait | Reste |
 |---|---|---|
-| 1. Limites connues | 4 / 6 | 1.5 et 1.6 |
+| 1. Limites connues | 5 / 6 | 1.6 |
 | 2. Vérification | 0 / 6 | tout |
 | 3. Héros et parties | 0 / 7 | tout |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
@@ -62,11 +62,14 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    ceux du projet ouvert, et l'aperçu dit « intégré par le projet … ».
    Un rôle intégré par une version précédente de l'éditeur n'a pas de
    projet connu : il est signalé et retiré.
-5. **Traductions sur plusieurs lignes** **[facile]**. Le remplacement
-   d'une traduction dans les `.po` ne gère que les `msgstr` d'une seule
-   ligne ; les titres de rang le sont tous aujourd'hui, mais un titre
-   long (ou un futur champ) ferait une entrée en double, refusée par
-   `msgfmt`. Gérer les lignes de suite `"…"`.
+5. **Traductions sur plusieurs lignes** **[facile]** — ✅ **Fait**. Le
+   remplacement d'une traduction dans les `.po` ne gérait que les
+   `msgstr` d'une seule ligne : une traduction coupée en lignes de suite
+   `"…"` aurait donné une entrée en double, refusée par `msgfmt`. Elle
+   est maintenant remplacée, et son texte d'origine gardé ligne à ligne
+   (`# nhheroedit:orig` puis `# nhheroedit:orig+`) pour le retrait. Le
+   `msgid` reste attendu sur une ligne (`xgettext` ne coupe que les
+   textes longs, pas les titres de rang).
 6. **Mode wizard sous le nom « wizard »** **[facile]**. En `-D`, le jeu
    remplace le nom du héros par « wizard » : la partie d'essai n'est
    pas tout à fait celle du héros. Expliquer comment ajouter le nom à
