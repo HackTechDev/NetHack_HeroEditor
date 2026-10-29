@@ -15,7 +15,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 |---|---|---|
 | 1. Limites connues | 6 / 6 | — |
 | 2. Vérification | 0 / 6 | tout |
-| 3. Héros et parties | 6 / 7 | 3.7 |
+| 3. Héros et parties | 7 / 7 | — |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
 | 5. Tuiles | 0 / 4 | tout |
 | 6. Projets et fichiers | 0 / 3 | tout |
@@ -139,9 +139,12 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    commentaire (le jeu refuse une option donnée deux fois). `j` s'en
    sert aussi : les règles `MENUCOLOR` passent, et un `NETHACKOPTIONS`
    qui désigne un fichier n'empêche plus de transmettre les options.
-7. **Biographie dans le jeu** **[gros]**. Montrer la biographie au début
-   de la partie, à la place ou à la suite du texte d'introduction
-   (`legacy`), ce qui demande une modification du jeu.
+7. **Biographie dans le jeu** **[gros]** — ✅ **Fait**. L'intégration
+   ajoute à `newgame()` (`src/allmain.c`, bloc marqué `nhheroedit`)
+   l'affichage du texte de `NHHEROEDIT_STORY` juste après le texte
+   d'introduction ; `j` y met le nom et la biographie du héros, coupée
+   à 76 colonnes. Rien ne change pour une partie lancée sans l'éditeur.
+   Vérifié en jeu.
 
 ## 4. Rôles : nouvelles règles
 

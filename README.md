@@ -70,7 +70,8 @@ titre anglais l'évite.
 | Animal et son nom | `pettype`, `catname` / `dogname` / `horsename` |
 | Fruit préféré | `fruit` |
 | Conduites | `pauper`, `nudist`, `blind`, `deaf`, `!bones` |
-| Biographie, notes | (pour vous) |
+| Biographie | montrée au début d'une nouvelle partie (voir plus bas) |
+| Notes | (pour vous) |
 
 **▸ Affichage** — le profil d'interface du héros, vide = celui de votre
 `.nethackrc` :
@@ -182,6 +183,7 @@ donne le résumé (nombre de parties, record).
    |---|---|
    | `src/role.c` | l'entrée du rôle dans `roles[]` ; l'originale reste dans un `#if 0` ; avant `roles[]`, un commentaire donne le projet de chaque rôle intégré |
    | `src/u_init.c` | les tableaux d'inventaire (originaux en `#if 0`), et un bloc pour l'or et les intrinsèques après `u_init_race()` |
+   | `src/allmain.c` | à chaque intégration : la biographie du héros, montrée après le texte d'introduction d'une nouvelle partie (texte passé par `j` dans `NHHEROEDIT_STORY`) |
    | `src/insight.c` | quand des titres de rang changent : le titre au féminin dans `^X` et dans la liste des rangs atteints (appels d'origine en `#if 0`) |
    | `win/share/monsters.txt` | les tuiles du rôle (l'originale en commentaire dessous) |
    | `po/fr.po`, `po/themes/fr@cyber.po`, `po/nethack.pot` | les titres de rang (ancienne traduction gardée en commentaire `# nhheroedit:orig`) |

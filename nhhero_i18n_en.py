@@ -633,8 +633,6 @@ EN = {
         'challenges chosen before the game: pauper, nudist, blind…',
     'Biographie':
         'Biography',
-    "l'histoire du héros (pour vous ; non intégrée au jeu)":
-        "the hero's story (for you; not integrated into the game)",
     'Notes':
         'Notes',
     'vos notes':
@@ -1205,4 +1203,10 @@ EN = {
         'your configuration then the hero: NETHACKOPTIONS=@file',
     'NETHACKOPTIONS=@%s nethack':
         'NETHACKOPTIONS=@%s nethack',
+    "Texte d'introduction introuvable dans newgame() (%s)":
+        'Opening text not found in newgame() (%s)',
+    'Ajouté : biographie du héros au début de la partie (src/allmain.c)':
+        "Added: the hero's biography at the start of the game (src/allmain.c)",
+    "l'histoire du héros ; montrée au début d'une nouvelle partie (j, jeu intégré)":
+        "the hero's story; shown at the start of a new game (j, integrated game)",
 }

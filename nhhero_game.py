@@ -159,6 +159,9 @@ def game_command(hackdir, h, role, race, mode="", rc=None):
     else:
         env, full = game_env(hackdir, D.hero_options(h, role, race) +
                              D.display_options(h))
+    if I.story_text(h):
+        # montrée au début de la partie par le jeu intégré (allmain.c)
+        env[I.STORY_ENV] = I.story_text(h)
     args = ["-u", h["name"]] if mode != "-D" else []
     if h["windowtype"]:
         args.insert(0, "-w" + h["windowtype"])

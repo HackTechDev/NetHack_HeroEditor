@@ -86,6 +86,9 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - Modifications marquées `nhheroedit`, texte d'origine conservé à côté
   (`#if 0` en C, commentaires dans `monsters.txt` et les `.po`) : retrait
   à l'identique ; une seconde intégration identique ne change rien.
+- Biographie du héros montrée au début d'une nouvelle partie : ajout à
+  `newgame()` (`src/allmain.c`), texte passé par `j` dans
+  `NHHEROEDIT_STORY`.
 - Correctif du titre au féminin dans `^X` et la liste des rangs atteints
   (`src/insight.c`), posé quand des titres de rang changent.
 - Copie des fichiers dans `sauvegardes/<date>/` avant chaque écriture,

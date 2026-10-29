@@ -303,7 +303,8 @@ class Editor(Popups, Game):
             others = self.other_projects()
             try:
                 mods, origins = self.merged_roles(others)
-                files = I.plan(self.src, mods, self.game(), origins)
+                files = I.plan(self.src, mods, self.game(), origins,
+                               story=True)
                 ok = not I.changed_files(self.src, files)
             except (I.InstallError, OSError, ValueError):
                 ok = False
@@ -421,8 +422,8 @@ class Editor(Popups, Game):
              "personnalisé (option fruit)")),
             ("conducts", "conducts", _("Conduites"), _("défis choisis avant "
              "la partie : sans le sou, nudiste, aveugle…")),
-            ("longtext", "story", _("Biographie"), _("l'histoire du héros "
-             "(pour vous ; non intégrée au jeu)")),
+            ("longtext", "story", _("Biographie"), _("l'histoire du héros ; "
+             "montrée au début d'une nouvelle partie (j, jeu intégré)")),
             ("longtext", "notes", _("Notes"), _("vos notes")),
             ("section", None, _("Affichage — options d'interface du héros"),
              ""),
@@ -1792,7 +1793,7 @@ class Editor(Popups, Game):
                 ["  ✖ " + e for e in errs[:15]])
             return
         try:
-            files = I.plan(self.src, mods, g, origins)
+            files = I.plan(self.src, mods, g, origins, story=True)
         except (I.InstallError, ValueError) as e:
             self.message_box(_("Intégration impossible"), [str(e)])
             return
@@ -1822,6 +1823,9 @@ class Editor(Popups, Game):
             if ks:
                 notes.append(label % ", ".join(self.role_label(k)
                                                for k in sorted(ks)))
+        if I.STORY_KEY not in I.installed_keys(self.src):
+            notes.append(_("Ajouté : biographie du héros au début de la "
+                           "partie (src/allmain.c)"))
         if not self.confirm(_("Écrire dans les sources (%s) ?\n\nRôles "
                               "modifiés : %s\n%s\nLes fichiers sont d'abord "
                               "copiés dans sauvegardes/.") % (
@@ -1838,7 +1842,7 @@ class Editor(Popups, Game):
                 any(I.TILES == rel for rel in ch):
             self.msg += _(" (tuiles : le jeu compilé n'a ni X11 ni Qt, "
                           "qui seuls les affichent)")
-        self.offer_commit(ch, I.commit_message(g, mods))
+        self.offer_commit(ch, I.commit_message(g, mods, story=True))
 
     def offer_commit(self, changed, message):
         if not changed or not I.is_git_repo(self.src):

@@ -20,6 +20,9 @@ Fichiers touchés (chemins relatifs aux sources) :
                             de départ (bloc ajouté après u_init_race())
   win/share/monsters.txt    tuiles mâle et femelle du rôle (l'original
                             en commentaire sous la tuile)
+  src/allmain.c             biographie du héros au début d'une nouvelle
+                            partie (texte de NHHEROEDIT_STORY, que
+                            l'éditeur passe au jeu)
   src/insight.c             titre de rang au féminin dans ^X et dans la
                             liste des rangs atteints (quand des titres
                             de rang sont changés)
@@ -43,15 +46,19 @@ TAG = "nhheroedit"
 ROLE_C = "src/role.c"
 U_INIT_C = "src/u_init.c"
 INSIGHT_C = "src/insight.c"
+ALLMAIN_C = "src/allmain.c"
 MONSTERS_H = "include/monsters.h"
 OBJECTS_H = "include/objects.h"
 TILES = "win/share/monsters.txt"
 PO_FR = "po/fr.po"
 PO_CYBER = "po/themes/fr@cyber.po"
 POT = "po/nethack.pot"
-ALL_FILES = [ROLE_C, U_INIT_C, INSIGHT_C, TILES, PO_FR, PO_CYBER, POT]
+ALL_FILES = [ROLE_C, U_INIT_C, INSIGHT_C, ALLMAIN_C, TILES, PO_FR,
+             PO_CYBER, POT]
 START_KEY = "start"
 PROJECTS_KEY = "projects"
+STORY_KEY = "story"
+STORY_ENV = "NHHEROEDIT_STORY"
 FEMININE_KEY = "feminine-rank"
 
 
@@ -120,7 +127,7 @@ def strip_po(text):
 
 
 STRIP = {ROLE_C: strip_c, U_INIT_C: strip_c, INSIGHT_C: strip_c,
-         TILES: strip_tiles,
+         ALLMAIN_C: strip_c, TILES: strip_tiles,
          PO_FR: strip_po, PO_CYBER: strip_po, POT: strip_po}
 
 
@@ -173,7 +180,7 @@ def installed_keys(src):
     """Rôles et tuiles modifiés dans les sources : ensemble de clés
     (« VALKYRIE », « kit:Valkyrie », « tile:valkyrie,female »…)."""
     keys = set()
-    for rel in (ROLE_C, U_INIT_C, INSIGHT_C):
+    for rel in (ROLE_C, U_INIT_C, INSIGHT_C, ALLMAIN_C):
         try:
             keys |= set(re.findall(r"/\* %s:begin (\S+) \*/" % TAG,
                                    _read(src, rel)))
@@ -519,6 +526,59 @@ def insert_feminine(text, ranks):
     return text
 
 
+# --- src/allmain.c : biographie du héros ---------------------------------------
+
+STORY_BLOCK = """\
+    /* %(tag)s:begin %(key)s */
+    /* biographie du héros, passée par nhheroedit dans %(env)s */
+    {
+        /* getenv() : nh_getenv() refuse plus de BUFSZ / 2 caractères */
+        const char *story = getenv("%(env)s");
+
+        if (story && *story) {
+            winid storywin = create_nhwindow(NHW_TEXT);
+            char line[BUFSZ];
+
+            while (*story) {
+                copynchars(line, story, BUFSZ - 1);
+                putstr(storywin, 0, line);
+                story = strchr(story, '\\n');
+                if (!story++)
+                    break;
+            }
+            display_nhwindow(storywin, TRUE);
+            destroy_nhwindow(storywin);
+        }
+    }
+    /* %(tag)s:end %(key)s */
+""" % {"tag": TAG, "key": STORY_KEY, "env": STORY_ENV}
+
+
+def insert_story(text):
+    """allmain.c (d'origine) avec la biographie après le texte
+    d'introduction d'une nouvelle partie."""
+    fn = text.find("\nnewgame(void)")
+    mo = re.compile(r"^    if \(flags\.legacy\) \{\n.*?^    \}\n",
+                    re.M | re.S).search(text, fn)
+    if fn < 0 or not mo:
+        raise InstallError(_("Texte d'introduction introuvable dans "
+                             "newgame() (%s)") % ALLMAIN_C)
+    return text[:mo.end()] + STORY_BLOCK + text[mo.end():]
+
+
+def story_text(h, width=76):
+    """Texte passé au jeu : le nom du héros puis sa biographie, en
+    lignes de width colonnes au plus ; "" sans biographie."""
+    import textwrap
+    story = (h.get("story") or "").replace("\r", "").strip()
+    if not story:
+        return ""
+    lines = [h["name"], ""]
+    for para in story.split("\n"):
+        lines += textwrap.wrap(para, width) or [""]
+    return "\n".join(lines)
+
+
 # --- traductions -----------------------------------------------------------------
 
 def _po_q(s):
@@ -672,10 +732,11 @@ def active_mods(mods):
     return {k: v for k, v in (mods or {}).items() if v}
 
 
-def plan(src, mods, game=None, origins=None):
+def plan(src, mods, game=None, origins=None, story=None):
     """Nouveaux textes des fichiers : {chemin relatif: texte}, d'après
     les fichiers d'origine. Ne touche à rien sur le disque. origins :
-    {rôle: chemin du projet}, noté dans role.c."""
+    {rôle: chemin du projet}, noté dans role.c. story : ajouter
+    l'affichage de la biographie (par défaut, dès qu'un rôle change)."""
     game = game or GameData(src)
     mods = active_mods(mods)
     for key in mods:
@@ -692,6 +753,10 @@ def plan(src, mods, game=None, origins=None):
     ranks = rank_plan(game, mods)
     if os.path.isfile(os.path.join(src, INSIGHT_C)):
         out[INSIGHT_C] = insert_feminine(clean_text(src, INSIGHT_C), ranks)
+    if os.path.isfile(os.path.join(src, ALLMAIN_C)):
+        text = clean_text(src, ALLMAIN_C)
+        out[ALLMAIN_C] = insert_story(text) if (
+            bool(mods) if story is None else story) else text
     for rel, kind in ((PO_FR, "fr"), (PO_CYBER, "cyber"), (POT, "pot")):
         if os.path.isfile(os.path.join(src, rel)):
             out[rel] = insert_po(clean_text(src, rel), ranks, kind)
@@ -824,8 +889,10 @@ def is_git_repo(src):
     return _git(src, "rev-parse", "--is-inside-work-tree")[0]
 
 
-def commit_message(game, mods):
+def commit_message(game, mods, story=False):
     mods = active_mods(mods)
+    if not mods and story:
+        return "Show the hero's biography at the start (nhheroedit)"
     if not mods:
         return "Restore the roles changed with nhheroedit"
     names = ", ".join(game.role(k)["name"][0] if game.role(k) else k

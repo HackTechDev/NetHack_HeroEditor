@@ -236,6 +236,22 @@ class TestInstall(unittest.TestCase):
                       files[I.INSIGHT_C])
         self.assertEqual(files[I.INSIGHT_C].count("nhheroedit:begin"), 2)
 
+    def test_story(self):
+        """Biographie : bloc ajouté à newgame() quand on le demande (ou
+        qu'un rôle change), texte coupé en lignes pour le jeu."""
+        files = I.plan(self.src, {}, self.g, story=True)
+        self.assertIn('getenv("NHHEROEDIT_STORY")', files[I.ALLMAIN_C])
+        self.assertEqual(I.plan(self.src, {}, self.g)[I.ALLMAIN_C],
+                         I._read(self.src, I.ALLMAIN_C))
+        h = T.from_template(0)
+        text = I.story_text(h, 30)
+        self.assertTrue(text.startswith("Kestrel\n\n"))
+        self.assertTrue(all(len(l) <= 30 for l in text.split("\n")))
+        self.assertEqual(I.story_text(dict(h, story=" ")), "")
+        role, race = self.g.role(h["role"]), self.g.race(h["race"])
+        self.assertIn("NHHEROEDIT_STORY=", G.game_command("/j", h, role,
+                                                          race))
+
     def test_feminine_fix_only_for_ranks(self):
         """Le correctif du titre féminin n'est posé que si des titres de
         rang changent."""
@@ -308,7 +324,7 @@ class TestInstall(unittest.TestCase):
     @unittest.skipUnless(shutil.which("cc"), "compilateur C absent")
     def test_c_compiles(self):
         I.install(self.src, self.mods)
-        for rel in (I.ROLE_C, I.U_INIT_C, I.INSIGHT_C):
+        for rel in (I.ROLE_C, I.U_INIT_C, I.INSIGHT_C, I.ALLMAIN_C):
             r = subprocess.run(
                 ["cc", "-I" + os.path.join(SRC, "include"), "-Wall",
                  "-Wextra", "-Werror", "-DNOSTATICFN", "-c", "-o",
