@@ -132,6 +132,7 @@ que les sources modifiées. `x` écrit les options dans
    |---|---|
    | `src/role.c` | l'entrée du rôle dans `roles[]` ; l'originale reste dans un `#if 0` |
    | `src/u_init.c` | les tableaux d'inventaire (originaux en `#if 0`), et un bloc pour l'or et les intrinsèques après `u_init_race()` |
+   | `src/insight.c` | quand des titres de rang changent : le titre au féminin dans `^X` et dans la liste des rangs atteints (appels d'origine en `#if 0`) |
    | `win/share/monsters.txt` | les tuiles du rôle (l'originale en commentaire dessous) |
    | `po/fr.po`, `po/themes/fr@cyber.po`, `po/nethack.pot` | les titres de rang (ancienne traduction gardée en commentaire `# nhheroedit:orig`) |
 
@@ -147,10 +148,12 @@ que les sources modifiées. `x` écrit les options dans
 Les rôles ne changent pas la liste des monstres : les parties
 sauvegardées restent lisibles (`EDITLEVEL` n'est pas touché).
 
-**Limite du jeu :** la ligne d'état de l'interface tty et l'écran `^X`
-affichent la forme masculine du titre de rang quand le rôle n'a pas de
-titre féminin propre (`src/botl.c`, `src/insight.c`) ; l'interface
-curses affiche bien la forme féminine.
+**Titre au féminin.** Un rang sans titre féminin propre se traduit au
+féminin par le contexte `feminine` des `.po`. La ligne d'état et les
+textes de quête en tiennent compte, mais le jeu d'origine traduit le
+titre masculin dans `^X` (« Vous êtes Gamin ») et dans la liste des
+rangs atteints : l'intégration corrige ces deux appels dans
+`src/insight.c` dès qu'un projet change des titres de rang.
 
 ## Fichiers
 

@@ -220,6 +220,16 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(cy[(None, "Shieldmaiden")], "Lame")
         self.assertIn((None, "Shieldmaiden"),
                       D.parse_po(files[I.POT]))
+        self.assertIn("gendered_word(rank_titl, innategend)",
+                      files[I.INSIGHT_C])
+        self.assertEqual(files[I.INSIGHT_C].count("nhheroedit:begin"), 2)
+
+    def test_feminine_fix_only_for_ranks(self):
+        """Le correctif du titre féminin n'est posé que si des titres de
+        rang changent."""
+        files = I.plan(self.src, {"VALKYRIE": {"gold": 5}}, self.g)
+        self.assertEqual(files[I.INSIGHT_C],
+                         I._read(self.src, I.INSIGHT_C))
 
     def test_same_feminine_title(self):
         """Un titre féminin identique au masculin n'est pas un titre
@@ -239,7 +249,7 @@ class TestInstall(unittest.TestCase):
     @unittest.skipUnless(shutil.which("cc"), "compilateur C absent")
     def test_c_compiles(self):
         I.install(self.src, self.mods)
-        for rel in (I.ROLE_C, I.U_INIT_C):
+        for rel in (I.ROLE_C, I.U_INIT_C, I.INSIGHT_C):
             r = subprocess.run(
                 ["cc", "-I" + os.path.join(SRC, "include"), "-Wall",
                  "-Wextra", "-Werror", "-DNOSTATICFN", "-c", "-o",

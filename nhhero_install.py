@@ -18,6 +18,9 @@ Fichiers touchés (chemins relatifs aux sources) :
                             de départ (bloc ajouté après u_init_race())
   win/share/monsters.txt    tuiles mâle et femelle du rôle (l'original
                             en commentaire sous la tuile)
+  src/insight.c             titre de rang au féminin dans ^X et dans la
+                            liste des rangs atteints (quand des titres
+                            de rang sont changés)
   po/fr.po, po/themes/fr@cyber.po, po/nethack.pot
                             titres de rang en français et du thème
                             Night City (traduction d'origine gardée dans
@@ -37,14 +40,16 @@ from nhhero_i18n import _
 TAG = "nhheroedit"
 ROLE_C = "src/role.c"
 U_INIT_C = "src/u_init.c"
+INSIGHT_C = "src/insight.c"
 MONSTERS_H = "include/monsters.h"
 OBJECTS_H = "include/objects.h"
 TILES = "win/share/monsters.txt"
 PO_FR = "po/fr.po"
 PO_CYBER = "po/themes/fr@cyber.po"
 POT = "po/nethack.pot"
-ALL_FILES = [ROLE_C, U_INIT_C, TILES, PO_FR, PO_CYBER, POT]
+ALL_FILES = [ROLE_C, U_INIT_C, INSIGHT_C, TILES, PO_FR, PO_CYBER, POT]
 START_KEY = "start"
+FEMININE_KEY = "feminine-rank"
 
 
 class InstallError(Exception):
@@ -105,7 +110,8 @@ def strip_po(text):
                           + "\n", text)
 
 
-STRIP = {ROLE_C: strip_c, U_INIT_C: strip_c, TILES: strip_tiles,
+STRIP = {ROLE_C: strip_c, U_INIT_C: strip_c, INSIGHT_C: strip_c,
+         TILES: strip_tiles,
          PO_FR: strip_po, PO_CYBER: strip_po, POT: strip_po}
 
 
@@ -118,7 +124,7 @@ def installed_keys(src):
     """Rôles et tuiles modifiés dans les sources : ensemble de clés
     (« VALKYRIE », « kit:Valkyrie », « tile:valkyrie,female »…)."""
     keys = set()
-    for rel in (ROLE_C, U_INIT_C):
+    for rel in (ROLE_C, U_INIT_C, INSIGHT_C):
         try:
             keys |= set(re.findall(r"/\* %s:begin (\S+) \*/" % TAG,
                                    _read(src, rel)))
@@ -392,6 +398,47 @@ def insert_tiles(text, game, mods):
     return text
 
 
+# --- src/insight.c : titre au féminin -------------------------------------------
+
+# Un rang sans titre féminin propre (« Shieldmaiden ») se traduit au
+# féminin par msgctxt "feminine" ; la ligne d'état et les textes de quête
+# passent par gendered_word(), mais ^X et la liste des rangs atteints
+# traduisent le titre masculin. Ces deux appels sont corrigés.
+FEMININE_FIXES = [
+    ("""                 _(rank_titl),
+""", """                 gendered_word(rank_titl, innategend),
+"""),
+    ("""                         _(rank_of(rank_to_xlev(absidx - (ACH_RNK1 - 1)),
+                                   Role_switch,
+                                   (achidx < 0) ? TRUE : FALSE)));
+""", """                         gendered_word(rank_of(rank_to_xlev(absidx
+                                                            - (ACH_RNK1 - 1)),
+                                               Role_switch,
+                                               (achidx < 0) ? TRUE : FALSE),
+                                       (achidx < 0) ? 1 : 0));
+"""),
+]
+
+
+def insert_feminine(text, ranks):
+    """insight.c (d'origine) avec le correctif du titre féminin, quand
+    des titres de rang sont traduits (ranks : plan de rank_plan())."""
+    if not ranks:
+        return text
+    for n, (old, new) in enumerate(FEMININE_FIXES):
+        # l'appel corrigé est remplacé en entier (pas de #if 0 au milieu
+        # des arguments d'une macro comme Snprintf)
+        mo = re.compile(r"^[ \t]*Snprintf\((?:(?!;\n).)*?\n%s.*?;\n" %
+                        re.escape(old), re.M | re.S).search(text)
+        if not mo:
+            continue
+        key = "%s:%d" % (FEMININE_KEY, n + 1)
+        orig = mo.group()
+        fixed = orig.replace(old, new)
+        text = text[:mo.start()] + _wrap(key, fixed, orig) + text[mo.end():]
+    return text
+
+
 # --- traductions -----------------------------------------------------------------
 
 def _po_q(s):
@@ -501,6 +548,8 @@ def plan(src, mods, game=None):
     if os.path.isfile(os.path.join(src, TILES)):
         out[TILES] = insert_tiles(clean_text(src, TILES), game, mods)
     ranks = rank_plan(game, mods)
+    if os.path.isfile(os.path.join(src, INSIGHT_C)):
+        out[INSIGHT_C] = insert_feminine(clean_text(src, INSIGHT_C), ranks)
     for rel, kind in ((PO_FR, "fr"), (PO_CYBER, "cyber"), (POT, "pot")):
         if os.path.isfile(os.path.join(src, rel)):
             out[rel] = insert_po(clean_text(src, rel), ranks, kind)
