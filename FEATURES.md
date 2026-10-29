@@ -87,6 +87,9 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   titre anglais déjà employé ailleurs dans le jeu (d'après les
   références de `nethack.pot`) dont la traduction changerait, ou
   traduit différemment par deux rôles du projet.
+- Poids de l'inventaire de départ (poids de `objects.h`, macros
+  emboîtées comprises ; moyenne pondérée pour un objet au hasard ; or)
+  comparé à la capacité de port : état de charge possible ou certain.
 
 ## Intégration
 

@@ -129,6 +129,15 @@ ROLE_KITS = {
 }
 # or de départ fixé par le jeu (u.umoney0 dans u_init_role())
 GAME_GOLD = {"PM_HEALER": _("1001 à 2000"), "PM_TOURIST": _("1 à 1000")}
+GAME_GOLD_RANGE = {"PM_HEALER": (1001, 2000), "PM_TOURIST": (1, 1000)}
+
+# capacité de port (weight_cap() de hack.c, constantes de weight.h)
+WT_WEIGHTCAP_STRCON = 25
+WT_WEIGHTCAP_SPARE = 50
+MAX_CARR_CAP = 1000
+# états de charge (calc_capacity()), noms de la version française
+ENCUMBRANCE = [_("Chargé"), _("Encombré"), _("Éreinté"), _("Surchargé"),
+               _("Écrasé")]
 
 # classes d'objets : macro de objects.h -> classe
 MACRO_CLASS = {
@@ -483,10 +492,94 @@ def kit_c(name, items):
 
 # --- objets (include/objects.h) --------------------------------------------
 
+def split_args(s):
+    """Arguments de premier niveau d'un appel C (texte entre ses
+    parenthèses)."""
+    out, depth, cur, i = [], 0, "", 0
+    while i < len(s):
+        c = s[i]
+        if c == '"':
+            j = s.index('"', i + 1)
+            while s[j - 1] == "\\":
+                j = s.index('"', j + 1)
+            cur += s[i:j + 1]
+            i = j + 1
+            continue
+        if c in "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+        if c == "," and depth == 0:
+            out.append(cur.strip())
+            cur = ""
+        else:
+            cur += c
+        i += 1
+    if cur.strip():
+        out.append(cur.strip())
+    return out
+
+
+def object_macros(text):
+    """Macros de objects.h qui mènent à OBJECT() : {nom: (paramètres,
+    corps)}."""
+    out = {}
+    for mo in re.finditer(r"^#define (\w+)\(([^)]*)\)((?:.*\\\n)*.*)$", text,
+                          re.M):
+        name = mo.group(1)
+        if name in ("OBJECT", "OBJ", "BITS", "MARKER", "HARDGEM"):
+            continue
+        params = [p.strip() for p in mo.group(2).replace("\\", "").split(",")]
+        out[name] = (params, mo.group(3).replace("\\\n", " "))
+    return out
+
+
+def _call(text, name):
+    """Arguments du premier appel name(...) dans text, ou None."""
+    mo = re.search(r"\b%s\(" % name, text)
+    if not mo:
+        return None
+    depth, i = 1, mo.end()
+    while depth and i < len(text):
+        depth += {"(": 1, ")": -1}.get(text[i], 0)
+        i += 1
+    return split_args(text[mo.end():i - 1])
+
+
+def expand_object(macro, args, macros):
+    """Arguments de OBJECT() pour l'appel macro(args), en suivant les
+    macros emboîtées (DRGN_ARMR -> ARMOR -> OBJECT), ou None."""
+    for _depth in range(5):
+        if macro == "OBJECT":
+            return args
+        if macro not in macros:
+            return None
+        params, body = macros[macro]
+        env = dict(zip(params, args))
+        inner = re.search(r"\b(OBJECT|%s)\(" % "|".join(
+            sorted(macros, key=len, reverse=True)), body)
+        if not inner:
+            return None
+        sub = _call(body[inner.start():], inner.group(1))
+        args = [re.sub(r"\b\w+\b", lambda m: env.get(m.group(), m.group()),
+                       a) for a in sub]
+        macro = inner.group(1)
+    return None
+
+
+def _num(s):
+    try:
+        return int(s.strip("() "))
+    except ValueError:
+        return 0
+
+
 def parse_objects(text):
-    """Objets du jeu : [{sn, name, cls, desc}] dans l'ordre de objects.h
-    (sans les objets interdits au départ)."""
+    """Objets du jeu : [{sn, name, cls, desc, wt, prob, skill}] dans
+    l'ordre de objects.h (sans les objets interdits au départ) ; skill :
+    compétence d'une arme (P_DAGGER…, négative pour les munitions)."""
     out = []
+    expand = object_macros(text)
     macros = "|".join(sorted(MACRO_CLASS, key=len, reverse=True))
     for mo in re.finditer(r"^(%s|OBJECT)\(" % macros, text, re.M):
         macro = mo.group(1)
@@ -516,11 +609,19 @@ def parse_objects(text):
             cls = MACRO_CLASS[macro]
         if cls not in CLASS_FR or sn in FORBIDDEN_OBJECTS:
             continue
+        oargs = expand_object(macro, split_args(call), expand) or []
+        bits = _call(oargs[1], "BITS") if len(oargs) > 1 else None
+        skill = bits[11] if bits and len(bits) > 11 else ""
         desc = strs[1] if len(strs) > 1 and macro not in (
             "RING", "WAND", "FOOD", "COIN") else None
         if macro in ("RING", "WAND"):
             desc = strs[1] if len(strs) > 1 else None
-        out.append({"sn": sn, "name": strs[0], "cls": cls, "desc": desc})
+        out.append({"sn": sn, "name": strs[0], "cls": cls, "desc": desc,
+                    "wt": _num(oargs[6]) if len(oargs) > 6 else 0,
+                    "prob": _num(oargs[4]) if len(oargs) > 4 else 0,
+                    "skill": skill.replace(" ", "")
+                    if macro in ("WEAPON", "PROJECTILE", "BOW", "WEPTOOL")
+                    and re.fullmatch(r"-?\s*P_\w+", skill) else None})
     return out
 
 
@@ -728,6 +829,97 @@ def attr_text(v, attr=0):
     if v > 18 and attr == 0:
         return "18/%02d" % (v - 18) if v < 118 else "18/**"
     return str(v)
+
+
+def acurrstr(v):
+    """Force comptée par le jeu (acurrstr() d'attrib.c) : 3 à 25."""
+    if v <= 18:
+        return max(v, 3)
+    if v <= 121:
+        return 19 + v // 50
+    return min(v, 125) - 100
+
+
+def capacity(st, con):
+    """Capacité de port au départ (weight_cap())."""
+    return min(MAX_CARR_CAP, WT_WEIGHTCAP_STRCON * (acurrstr(st) + con)
+               + WT_WEIGHTCAP_SPARE)
+
+
+def capacity_range(eff, race):
+    """(min, max) de la capacité selon la force et la constitution que
+    le jeu peut tirer pour ce rôle et cette race."""
+    st = attr_range((eff["attrbase"][0],), (race["attrmin"][0],
+                                            race["attrmax"][0]))
+    con = attr_range((eff["attrbase"][4],), (race["attrmin"][4],
+                                             race["attrmax"][4]))
+    return capacity(st[0], con[0]), capacity(st[1], con[1])
+
+
+def encumbrance(weight, cap):
+    """0 sans charge, sinon 1 (Chargé) à 5 (Écrasé) : calc_capacity()."""
+    wt = weight - cap
+    if wt <= 0:
+        return 0
+    if cap <= 1:
+        return 5
+    return min(wt * 2 // cap + 1, 5)
+
+
+def item_weight(o, objects):
+    """Poids d'un exemplaire : celui de l'objet, ou pour un objet au
+    hasard la moyenne de sa classe pondérée par les probabilités du
+    jeu."""
+    if o["otyp"] != UNDEF_TYP:
+        return next((x["wt"] for x in objects if x["sn"] == o["otyp"]), 0)
+    cls = [x for x in objects if x["cls"] == o["cls"]]
+    total = sum(x["prob"] for x in cls)
+    if not total:
+        return sum(x["wt"] for x in cls) / len(cls) if cls else 0
+    return sum(x["wt"] * x["prob"] for x in cls) / total
+
+
+def gold_weight(n):
+    return (n + 50) // 100 if n else 0
+
+
+def kit_weight(kits, objects, gold=(0, 0)):
+    """(min, max) du poids de l'inventaire de départ : kits est la liste
+    des variantes (le jeu en tire une), gold l'or (min, max)."""
+    lo = hi = None
+    for items in kits or [[]]:
+        a = sum(o["qmin"] * item_weight(o, objects) for o in items)
+        b = sum(o["qmax"] * item_weight(o, objects) for o in items)
+        lo = a if lo is None else min(lo, a)
+        hi = b if hi is None else max(hi, b)
+    return (round(lo) + gold_weight(gold[0]),
+            round(hi) + gold_weight(gold[1]))
+
+
+def start_gold(role, mod):
+    """(min, max) de l'or de départ."""
+    g = (mod or {}).get("gold")
+    if g is not None:
+        return g, g
+    return GAME_GOLD_RANGE.get(role["mnum"], (0, 0))
+
+
+def weight_problems(eff, race, kits, objects, gold):
+    """Avertissement quand le héros peut commencer chargé."""
+    wlo, whi = kit_weight(kits, objects, gold)
+    clo, chi = capacity_range(eff, race)
+    worst, best = encumbrance(whi, clo), encumbrance(wlo, chi)
+    if best:
+        return [("attention", _("le héros commence %s quoi qu'il tire : "
+                                "inventaire %d, capacité au plus %d")
+                 % (ENCUMBRANCE[best - 1].lower(), wlo, chi))]
+    if worst:
+        return [("attention", _("le héros peut commencer %s : inventaire %s,"
+                                " capacité %d à %d selon la force et la "
+                                "constitution") % (
+            ENCUMBRANCE[worst - 1].lower(),
+            str(whi) if wlo == whi else "%d-%d" % (wlo, whi), clo, chi))]
+    return []
 
 
 def start_hp(role_hp, race):
@@ -961,8 +1153,9 @@ def kit_problems(items, objects):
     return out
 
 
-def validate(h, role, race, mod, objects, others=()):
-    """Problèmes du héros (et de son rôle modifié) : [(gravité, msg)]."""
+def validate(h, role, race, mod, objects, others=(), kits=None):
+    """Problèmes du héros (et de son rôle modifié) : [(gravité, msg)].
+    kits : variantes de l'inventaire de départ (pour le poids)."""
     out = []
     if not valid_name(h["name"]):
         out.append(("erreur", _("nom du héros vide, trop long (31 "
@@ -1004,6 +1197,9 @@ def validate(h, role, race, mod, objects, others=()):
         out.append(("erreur", _("« , » et « : » sont interdits dans le "
                                 "nom de l'animal et du fruit")))
     out += role_problems(role, race, mod, objects)
+    if kits is not None:
+        out += weight_problems(eff, race, kits, objects,
+                               start_gold(role, mod))
     return out
 
 

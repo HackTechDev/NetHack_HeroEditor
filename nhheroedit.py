@@ -388,9 +388,12 @@ class Editor(Popups, Game):
 
     def problems(self, h):
         g = self.game()
-        return D.validate(h, self.role_of(h), self.race_of(h),
+        role = self.role_of(h)
+        return D.validate(h, role, self.race_of(h),
                           self.mod(h["role"]), g.objects,
-                          [o for o in self.heroes if o is not h]) + \
+                          [o for o in self.heroes if o is not h],
+                          [self.kit(h, n) for n in g.kit_names(role)]
+                          if role else None) + \
             self.rank_problems(h["role"])
 
     def rank_problems(self, key):
@@ -864,6 +867,16 @@ class Editor(Popups, Game):
             en = D.start_en(e["en"], race)
             put(scr, yy, x + 2, _("PV %d-%d   Énergie %d-%d") % (
                 hp + en), 0, cw)
+            yy += 1
+            wlo, whi = D.kit_weight([self.kit(hero, n) for n in
+                                     g.kit_names(role)], g.objects,
+                                    D.start_gold(role, self.mod(hero["role"])))
+            clo, chi = D.capacity_range(e, race)
+            load = D.encumbrance(whi, clo)
+            put(scr, yy, x + 2, _("Poids %s / capacité %s") % (
+                whi if wlo == whi else "%d-%d" % (wlo, whi),
+                chi if clo == chi else "%d-%d" % (clo, chi)),
+                self.colors.fg(curses.COLOR_YELLOW, True) if load else 0, cw)
             yy += 1
             god = e["gods"][D.ALIGN_GOD[hero["align"]]]
             put(scr, yy, x + 2, _("Dieu : %s") % self.god_text(god), 0, cw)

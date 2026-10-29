@@ -1303,4 +1303,20 @@ EN = {
         'Back from nhmapedit (code %d); m then U to play with the modified level',
     '  Q            niveaux de quête du rôle dans nhmapedit':
         "  Q            the role's quest levels in nhmapedit",
+    'Chargé':
+        'Burdened',
+    'Encombré':
+        'Stressed',
+    'Éreinté':
+        'Strained',
+    'Surchargé':
+        'Overtaxed',
+    'Écrasé':
+        'Overloaded',
+    "le héros commence %s quoi qu'il tire : inventaire %d, capacité au plus %d":
+        'the hero starts %s whatever the rolls: inventory %d, capacity at most %d',
+    'le héros peut commencer %s : inventaire %s, capacité %d à %d selon la force et la constitution':
+        'the hero may start %s: inventory %s, capacity %d to %d depending on strength and constitution',
+    'Poids %s / capacité %s':
+        'Weight %s / capacity %s',
 }

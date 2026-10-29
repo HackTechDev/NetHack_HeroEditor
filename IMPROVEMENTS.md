@@ -14,7 +14,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | Thème | Fait | Reste |
 |---|---|---|
 | 1. Limites connues | 6 / 6 | — |
-| 2. Vérification | 0 / 6 | tout |
+| 2. Vérification | 1 / 6 | 2.1 à 2.3, 2.5, 2.6 |
 | 3. Héros et parties | 7 / 7 | — |
 | 4. Rôles : nouvelles règles | 1 / 9 | 4.1 à 4.3, 4.5 à 4.9 |
 | 5. Tuiles | 4 / 4 | — |
@@ -93,9 +93,12 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
 3. **Livres de sorts trop difficiles** **[facile]**. Signaler un livre
    de niveau élevé ou d'une école restreinte pour le rôle
    (`restricted_spell_discipline()`), que le héros ne pourra pas lire.
-4. **Poids de l'inventaire** **[moyen]**. Additionner les poids lus
-   dans `objects.h` et comparer à la capacité de départ (force et
-   constitution) : avertir quand le héros commence chargé.
+4. **Poids de l'inventaire** **[moyen]** — ✅ **Fait**. Poids lus dans
+   `objects.h` (en suivant les macros jusqu'à `OBJECT()`), moyenne
+   pondérée par les probabilités pour un objet au hasard, or compris ;
+   capacité de `weight_cap()` aux bornes de la force et de la
+   constitution : l'Aperçu montre « Poids / capacité » et la
+   vérification dit si le héros peut commencer chargé (ou le sera).
 5. **Équilibrage** **[moyen]**. Une note de « puissance de départ »
    (attributs, PV, armure, dégâts de l'arme, intrinsèques) comparée aux
    13 rôles du jeu, comme la touche `b` de nhmonedit pour les monstres.

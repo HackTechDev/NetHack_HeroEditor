@@ -111,7 +111,12 @@ rôle (un champ modifié est marqué ●, `Suppr` rend la valeur du jeu) :
   s'appliquent qu'aux trois animaux du jeu) ;
 - inventaire de départ (`k`) : objets du jeu ou objet au hasard d'une
   classe, quantité (ou intervalle), enchantement ou charges, béni ;
-  le Barbare a deux variantes, tirées au hasard par le jeu ;
+  le Barbare a deux variantes, tirées au hasard par le jeu. L'Aperçu
+  donne le **poids** de l'inventaire (or compris ; un objet au hasard
+  compte pour le poids moyen de sa classe) et la **capacité de port**
+  (`weight_cap()` : 25 × (force + constitution) + 50, au plus 1000)
+  selon les attributs que la race permet ; il avertit quand le héros
+  peut commencer chargé, ou le sera quoi qu'il tire ;
 - tuiles mâle et femelle (`t`), visibles dans les versions graphiques.
 
 ### La tuile

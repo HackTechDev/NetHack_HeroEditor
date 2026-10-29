@@ -467,6 +467,51 @@ class TestPet(unittest.TestCase):
             {"petnum": "PM_SECURITY_BOT"}, g.objects)))
 
 
+class TestWeight(unittest.TestCase):
+    def test_capacity(self):
+        self.assertEqual(D.acurrstr(18), 18)
+        self.assertEqual(D.acurrstr(18 + 50), 20)       # 18/50
+        self.assertEqual(D.acurrstr(118), 21)           # 18/**
+        self.assertEqual(D.capacity(10, 10), 550)
+        self.assertEqual(D.capacity(118, 18), 1000)     # plafond
+        self.assertEqual(D.encumbrance(550, 550), 0)
+        self.assertEqual(D.encumbrance(551, 550), 1)
+        self.assertEqual(D.encumbrance(900, 550), 2)
+        self.assertEqual(D.gold_weight(800), 8)
+        self.assertEqual(D.gold_weight(0), 0)
+
+    @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
+    def test_kit(self):
+        g = I.GameData(SRC)
+        objs = {o["sn"]: o for o in g.objects}
+        self.assertEqual(objs["TWO_HANDED_SWORD"]["wt"], 150)
+        self.assertEqual(objs["RIN_ADORNMENT"]["wt"], 3)    # poids fixe
+        self.assertEqual(objs["SPE_FORCE_BOLT"]["wt"], 50)
+        val = g.kits["Valkyrie"]
+        self.assertEqual(D.kit_weight([val], g.objects), (90, 90))
+        rnd = [{"otyp": D.UNDEF_TYP, "cls": "RING_CLASS", "spe": None,
+                "qmin": 2, "qmax": 2, "bless": None}]
+        self.assertEqual(D.kit_weight([rnd], g.objects), (6, 6))
+        self.assertEqual(D.kit_weight([val, rnd], g.objects, (800, 800)),
+                         (14, 98))
+        role, race = g.role("VALKYRIE"), g.race("human")
+        h = D.normalize({"name": "K", "role": "VALKYRIE", "race": "human",
+                         "gender": "female", "align": "neutral"})
+        self.assertFalse([m for _g, m in D.validate(
+            h, role, race, {}, g.objects, kits=[val]) if "chargé" in m])
+        heavy = val + [{"otyp": "TWO_HANDED_SWORD", "cls": "WEAPON_CLASS",
+                        "spe": 0, "qmin": 4, "qmax": 6, "bless": None}]
+        msgs = [m for _g, m in D.validate(h, role, race, {}, g.objects,
+                                          kits=[heavy])]
+        self.assertTrue(any("peut commencer encombré" in m and "690-990" in m
+                            for m in msgs), msgs)
+        heavy[-1]["qmin"] = heavy[-1]["qmax"] = 10
+        msgs = [m for _g, m in D.validate(h, role, race, {}, g.objects,
+                                          kits=[heavy])]
+        self.assertTrue(any("commence encombré quoi qu'il tire" in m
+                            for m in msgs), msgs)
+
+
 class TestTiles(unittest.TestCase):
     def test_layers(self):
         for name, layer in D.LAYERS:
