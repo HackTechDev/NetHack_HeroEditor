@@ -375,8 +375,6 @@ EN = {
         'type to filter  ↑↓ Enter Esc',
     ' ↑↓ PgUp PgDn ←→  q/Échap : fermer  %d-%d/%d ':
         ' ↑↓ PgUp PgDn ←→  q/Esc: close  %d-%d/%d ',
-    'Couleur %s':
-        'Color %s',
     'filtre : ':
         'filter: ',
     ' Tuile : %s  (versions graphiques Qt et X11) ':
@@ -1209,4 +1207,10 @@ EN = {
         "Added: the hero's biography at the start of the game (src/allmain.c)",
     "l'histoire du héros ; montrée au début d'une nouvelle partie (j, jeu intégré)":
         "the hero's story; shown at the start of a new game (j, integrated game)",
+    'Couleur %s %s':
+        'Color %s %s',
+    "   c : copier l'autre sexe":
+        '   c : copy the other sex',
+    '%s (c)':
+        '%s (c)',
 }

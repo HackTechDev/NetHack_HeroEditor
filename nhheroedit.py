@@ -1388,9 +1388,12 @@ class Editor(Popups, Game):
         gender = gender or h["gender"]
         old = self.tile(h, gender)
         orig = self.game().tile(role, gender)
+        sex = "female" if gender == "male" else "male"
+        other = (_("%s (c)") % D.GENDER_FR[sex].capitalize(),
+                 self.tile(h, sex))
         new = self.tile_editor(old, "%s, %s" % (
             self.game().names.role(role, gender, self.theme),
-            D.GENDER_FR[gender]), self.import_tile, orig)
+            D.GENDER_FR[gender]), self.import_tile, orig, other)
         if new != old:
             self.checkpoint()
             self.set_mod(h["role"], "tile_" + gender, new, orig)

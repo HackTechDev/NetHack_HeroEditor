@@ -70,7 +70,8 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   maudit, béni) ; ajout, retrait, déplacement, retour à l'inventaire du
   jeu ; deux variantes pour le Barbare.
 - Tuiles mâle et femelle du rôle : éditeur de pixels, import de la tuile
-  d'un monstre du jeu, retour à la tuile d'origine.
+  d'un monstre du jeu, retour à la tuile d'origine ; la tuile de l'autre
+  sexe est montrée à côté et peut être recopiée.
 - Vérifications : total des poids (100), base (3 à 18, 75 points au
   plus), rôle sans race, sexe ou alignement, objets inconnus ou de la
   mauvaise classe, quantités, enchantements, caractères interdits ;

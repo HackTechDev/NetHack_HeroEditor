@@ -116,6 +116,9 @@ retourner, `i` importer la tuile d'un des 394 monstres du jeu, `o`
 revenir à la tuile d'origine, `u` annuler ; souris : clic ou glissé pour
 peindre, clic droit pipette, molette pour la couleur.
 
+La tuile de l'autre sexe est montrée sous l'aperçu ; `c` la recopie
+(par exemple la tuile mâle vers la femelle, puis quelques retouches).
+
 ## Touches
 
 | Touche | Action |

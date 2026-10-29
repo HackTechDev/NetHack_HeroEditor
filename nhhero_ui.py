@@ -632,11 +632,13 @@ class Popups:
 
     # --- éditeur de tuile -------------------------------------------------
 
-    def tile_editor(self, tile, title, importer=None, original=None):
+    def tile_editor(self, tile, title, importer=None, original=None,
+                    other=None):
         """Dessin d'une tuile 16x16. Échap garde le dessin, q propose de
         l'abandonner ; renvoie la tuile retenue. importer() : tuile
         choisie dans le jeu (ou None) ; original : tuile du jeu, que o
-        rétablit."""
+        rétablit ; other : (titre, tuile) de l'autre sexe, montrée à
+        côté et que c recopie."""
         pal = [c for c, _ in D.TILE_PALETTE]
         rgb = dict(D.TILE_PALETTE)
         grid = [list(r) for r in tile]
@@ -653,7 +655,8 @@ class Popups:
             _("r : remplacer cette couleur partout"),
             _("m : symétrie gauche -> droite"),
             _("h : retourner     i : importer une tuile du jeu"),
-            _("o : tuile d'origine du rôle"),
+            _("o : tuile d'origine du rôle") + (
+                _("   c : copier l'autre sexe") if other else ""),
             _("x : tout effacer  u : annuler  q : abandonner"),
             _("souris : clic peindre, clic droit pipette,"),
             _("         molette couleur     Échap : terminer"),
@@ -687,6 +690,14 @@ class Popups:
                     for i in range(S):
                         put(self.stdscr, oy + 1 + j // 2, px + i, "▀",
                             self.colors.halfblock(grid[j][i], grid[j + 1][i]))
+                if other:
+                    put(self.stdscr, oy + 9, px, clip(other[0], S + 2),
+                        curses.A_DIM)
+                    for j in range(0, S, 2):
+                        for i in range(S):
+                            put(self.stdscr, oy + 10 + j // 2, px + i, "▀",
+                                self.colors.halfblock(other[1][j][i],
+                                                      other[1][j + 1][i]))
                 # palette
                 qx = px + S + 3
                 put(self.stdscr, oy, qx, _("Palette"), curses.A_DIM)
@@ -698,11 +709,10 @@ class Popups:
                         curses.A_BOLD if c == color else 0)
                     put(self.stdscr, yy, xx + 3, "    ", self.colors.pixel(c))
                 for k, l in enumerate(help_lines):
-                    put(self.stdscr, oy + S + 1 + k if oy + S + 1 + k < H
+                    put(self.stdscr, oy + S + 2 + k if oy + S + 2 + k < H
                         else H - 1, 2, l, curses.A_DIM)
-                put(self.stdscr, oy + 10, px, _("Couleur %s") % color)
-                put(self.stdscr, oy + 11, px, "%s" % (rgb[color],),
-                    curses.A_DIM)
+                put(self.stdscr, oy + S, qx, _("Couleur %s %s")
+                    % (color, rgb[color]))
                 self.stdscr.refresh()
                 k = get_key(self.stdscr)
 
@@ -789,6 +799,9 @@ class Popups:
                 elif k == "o" and original:
                     save()
                     grid = [list(r) for r in original]
+                elif k == "c" and other:
+                    save()
+                    grid = [list(r) for r in other[1]]
                 elif k == "q":
                     if grid == orig or self.confirm(
                             _("Garder les modifications de la tuile ?")):
