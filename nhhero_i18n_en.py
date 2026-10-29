@@ -1319,4 +1319,62 @@ EN = {
         'the hero may start %s: inventory %s, capacity %d to %d depending on strength and constitution',
     'Poids %s / capacité %s':
         'Weight %s / capacity %s',
+    'dague':
+        'dagger',
+    'couteau':
+        'knife',
+    'hache':
+        'axe',
+    'pioche':
+        'pick-axe',
+    'épée courte':
+        'short sword',
+    'épée large':
+        'broadsword',
+    'épée longue':
+        'long sword',
+    'épée à deux mains':
+        'two-handed sword',
+    'sabre':
+        'saber',
+    'gourdin':
+        'club',
+    'masse':
+        'mace',
+    'morgenstern':
+        'morning star',
+    'fléau':
+        'flail',
+    'marteau':
+        'hammer',
+    'bâton':
+        'quarterstaff',
+    "arme d'hast":
+        'polearms',
+    'lance':
+        'spear',
+    'trident':
+        'trident',
+    'lance de joute':
+        'lance',
+    'arc':
+        'bow',
+    'fronde':
+        'sling',
+    'arbalète':
+        'crossbow',
+    'fléchette':
+        'dart',
+    'shuriken':
+        'shuriken',
+    'boomerang':
+        'boomerang',
+    'fouet':
+        'whip',
+    'corne de licorne':
+        'unicorn horn',
+    "%s : munition d'une compétence que le rôle n'a pas (%s), tirée avec le malus des compétences interdites":
+        '%s: ammunition for a skill the role lacks (%s), fired with the restricted-skill penalty',
+    "%s : compétence que le rôle n'a pas (%s) ; le jeu la donne au niveau de base, sans progression possible":
+        '%s: skill the role lacks (%s); the game grants it at Basic, with no way to advance',
 }

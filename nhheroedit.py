@@ -393,7 +393,9 @@ class Editor(Popups, Game):
                           self.mod(h["role"]), g.objects,
                           [o for o in self.heroes if o is not h],
                           [self.kit(h, n) for n in g.kit_names(role)]
-                          if role else None) + \
+                          if role else None,
+                          g.skills.get(role["mnum"]) if role else None,
+                          lambda ob: g.names.obj(ob, self.theme)) + \
             self.rank_problems(h["role"])
 
     def rank_problems(self, key):

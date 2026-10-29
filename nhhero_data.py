@@ -922,6 +922,73 @@ def weight_problems(eff, race, kits, objects, gold):
     return []
 
 
+# --- compétences (tables Skill_X de src/u_init.c) ---------------------------
+
+SKILL_FR = {
+    "P_DAGGER": _("dague"), "P_KNIFE": _("couteau"), "P_AXE": _("hache"),
+    "P_PICK_AXE": _("pioche"), "P_SHORT_SWORD": _("épée courte"),
+    "P_BROAD_SWORD": _("épée large"), "P_LONG_SWORD": _("épée longue"),
+    "P_TWO_HANDED_SWORD": _("épée à deux mains"), "P_SABER": _("sabre"),
+    "P_CLUB": _("gourdin"), "P_MACE": _("masse"),
+    "P_MORNING_STAR": _("morgenstern"), "P_FLAIL": _("fléau"),
+    "P_HAMMER": _("marteau"), "P_QUARTERSTAFF": _("bâton"),
+    "P_POLEARMS": _("arme d'hast"), "P_SPEAR": _("lance"),
+    "P_TRIDENT": _("trident"), "P_LANCE": _("lance de joute"),
+    "P_BOW": _("arc"), "P_SLING": _("fronde"), "P_CROSSBOW": _("arbalète"),
+    "P_DART": _("fléchette"), "P_SHURIKEN": _("shuriken"),
+    "P_BOOMERANG": _("boomerang"), "P_WHIP": _("fouet"),
+    "P_UNICORN_HORN": _("corne de licorne"),
+}
+# munitions : le jeu ne donne pas la compétence de base pour elles
+AMMO_SKILLS = ("-P_BOW", "-P_SLING", "-P_CROSSBOW")
+
+
+def parse_skills(text):
+    """Compétences de chaque rôle : {mnum: {compétence: maximum}}, d'après
+    les tables Skill_X et le switch de skills_for_role()."""
+    tables = {}
+    for mo in re.finditer(r"\bdef_skill\s+(Skill_\w+)\s*\[\s*\]\s*=\s*"
+                          r"\{(.*?)\};", text, re.S):
+        tables[mo.group(1)] = dict(re.findall(r"\{\s*(P_\w+)\s*,\s*"
+                                              r"(P_\w+)\s*\}", mo.group(2)))
+    mo = re.search(r"\bskills_for_role\s*\(void\)\s*\{(.*?)\n\}", text,
+                   re.S)
+    out = {}
+    if mo:
+        for pm, tab in re.findall(r"case\s+(PM_\w+)\s*:\s*skills\s*=\s*"
+                                  r"(Skill_\w+)", mo.group(1)):
+            if tab in tables:
+                out[pm] = tables[tab]
+    return out
+
+
+def skill_problems(kits, objects, skills, name=None):
+    """Avertissements pour les armes de l'inventaire dont la compétence
+    est interdite au rôle (skills : {compétence: maximum})."""
+    by_sn = {o["sn"]: o for o in objects}
+    name = name or (lambda ob: ob["name"])
+    out, seen = [], set()
+    for items in kits or []:
+        for o in items:
+            ob = by_sn.get(o["otyp"])
+            if not ob or not ob.get("skill") or ob["sn"] in seen:
+                continue
+            sk = ob["skill"].lstrip("-")
+            if sk in skills or sk not in SKILL_FR:
+                continue
+            seen.add(ob["sn"])
+            if ob["skill"] in AMMO_SKILLS:
+                msg = _("%s : munition d'une compétence que le rôle n'a pas "
+                        "(%s), tirée avec le malus des compétences "
+                        "interdites")
+            else:
+                msg = _("%s : compétence que le rôle n'a pas (%s) ; le jeu "
+                        "la donne au niveau de base, sans progression "
+                        "possible")
+            out.append(("attention", msg % (name(ob), SKILL_FR[sk])))
+    return out
+
+
 def start_hp(role_hp, race):
     """(minimum, maximum) des PV au départ : newhp() au niveau 0."""
     fix = role_hp[0] + race["hpadv"][0]
@@ -1153,9 +1220,12 @@ def kit_problems(items, objects):
     return out
 
 
-def validate(h, role, race, mod, objects, others=(), kits=None):
+def validate(h, role, race, mod, objects, others=(), kits=None,
+             skills=None, name=None):
     """Problèmes du héros (et de son rôle modifié) : [(gravité, msg)].
-    kits : variantes de l'inventaire de départ (pour le poids)."""
+    kits : variantes de l'inventaire de départ (pour le poids) ;
+    skills : compétences du rôle {compétence: maximum} ; name : nom
+    affiché d'un objet du jeu."""
     out = []
     if not valid_name(h["name"]):
         out.append(("erreur", _("nom du héros vide, trop long (31 "
@@ -1200,6 +1270,8 @@ def validate(h, role, race, mod, objects, others=(), kits=None):
     if kits is not None:
         out += weight_problems(eff, race, kits, objects,
                                start_gold(role, mod))
+        if skills is not None:
+            out += skill_problems(kits, objects, skills, name)
     return out
 
 

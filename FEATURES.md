@@ -90,6 +90,9 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - Poids de l'inventaire de départ (poids de `objects.h`, macros
   emboîtées comprises ; moyenne pondérée pour un objet au hasard ; or)
   comparé à la capacité de port : état de charge possible ou certain.
+- Armes de l'inventaire d'une compétence absente des tables `Skill_X`
+  du rôle (`u_init.c`) : bloquées au niveau de base, ou munitions
+  tirées avec le malus des compétences interdites.
 
 ## Intégration
 

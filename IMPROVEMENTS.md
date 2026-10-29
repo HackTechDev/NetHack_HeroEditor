@@ -14,7 +14,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | Thème | Fait | Reste |
 |---|---|---|
 | 1. Limites connues | 6 / 6 | — |
-| 2. Vérification | 1 / 6 | 2.1 à 2.3, 2.5, 2.6 |
+| 2. Vérification | 2 / 6 | 2.2, 2.3, 2.5, 2.6 |
 | 3. Héros et parties | 7 / 7 | — |
 | 4. Rôles : nouvelles règles | 1 / 9 | 4.1 à 4.3, 4.5 à 4.9 |
 | 5. Tuiles | 4 / 4 | — |
@@ -80,10 +80,12 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
 
 ## 2. Vérification
 
-1. **Armes que le rôle ne sait pas manier** **[moyen]**. Lire les
-   tables `Skill_X` de `u_init.c` et avertir quand l'inventaire donne
-   une arme d'une compétence interdite au rôle (une Netrunneuse avec une
-   épée à deux mains).
+1. **Armes que le rôle ne sait pas manier** **[moyen]** — ✅ **Fait**.
+   Tables `Skill_X` et `skills_for_role()` lues dans `u_init.c` ; la
+   vérification avertit pour chaque arme (ou outil-arme) de
+   l'inventaire dont la compétence manque au rôle : le jeu la donne au
+   niveau de base sans progression possible, et une munition est tirée
+   avec le malus des compétences interdites.
 2. **Objets que le jeu remplace au départ** **[facile]**.
    `ini_inv_mkobj_filter()` refuse certains objets tirés au hasard
    (baguette de souhait, anneau de polymorphie, livres trop difficiles…)

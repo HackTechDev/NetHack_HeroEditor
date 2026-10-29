@@ -210,6 +210,7 @@ class GameData:
                 k = D.parse_kit(u_init, n)
                 if k is not None:
                     self.kits[n] = k
+        self.skills = D.parse_skills(u_init)
         self.objects = D.parse_objects(_read(src, OBJECTS_H))
         self.by_sn = {o["sn"]: o for o in self.objects}
         po = {}

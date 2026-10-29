@@ -512,6 +512,72 @@ class TestWeight(unittest.TestCase):
                             for m in msgs), msgs)
 
 
+class TestSkills(unittest.TestCase):
+    TEXT = """
+static const struct def_skill Skill_W[] = {
+    { P_DAGGER, P_EXPERT },
+    { P_QUARTERSTAFF, P_EXPERT },
+    { P_NONE, 0 }
+};
+staticfn const struct def_skill *
+skills_for_role(void)
+{
+    switch (Role_switch) {
+    case PM_WIZARD:
+        skills = Skill_W;
+        break;
+    }
+}
+"""
+
+    def test_parse(self):
+        self.assertEqual(D.parse_skills(self.TEXT), {
+            "PM_WIZARD": {"P_DAGGER": "P_EXPERT",
+                          "P_QUARTERSTAFF": "P_EXPERT"}})
+
+    def test_problems(self):
+        objs = [{"sn": "QUARTERSTAFF", "name": "quarterstaff",
+                 "skill": "P_QUARTERSTAFF"},
+                {"sn": "TWO_HANDED_SWORD", "name": "two-handed sword",
+                 "skill": "P_TWO_HANDED_SWORD"},
+                {"sn": "ARROW", "name": "arrow", "skill": "-P_BOW"},
+                {"sn": "CLOAK", "name": "cloak", "skill": None}]
+        skills = D.parse_skills(self.TEXT)["PM_WIZARD"]
+
+        def kit(*sns):
+            return [{"otyp": sn, "cls": "WEAPON_CLASS", "spe": 0,
+                     "qmin": 1, "qmax": 1, "bless": None} for sn in sns]
+        self.assertEqual(D.skill_problems([kit("QUARTERSTAFF", "CLOAK")],
+                                          objs, skills), [])
+        msgs = D.skill_problems([kit("TWO_HANDED_SWORD", "ARROW"),
+                                 kit("TWO_HANDED_SWORD")], objs, skills)
+        self.assertEqual(len(msgs), 2)          # une fois par objet
+        self.assertIn("two-handed sword : compétence que le rôle n'a pas "
+                      "(épée à deux mains)", msgs[0][1])
+        self.assertIn("munition", msgs[1][1])
+
+    @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
+    def test_game(self):
+        g = I.GameData(SRC)
+        self.assertEqual(len(g.skills), 13)
+        self.assertEqual(g.skills["PM_VALKYRIE"]["P_LONG_SWORD"], "P_EXPERT")
+        for r in g.roles:               # aucun rôle du jeu n'est signalé
+            kits = [g.kits[n] for n in g.kit_names(r)]
+            self.assertEqual(D.skill_problems(kits, g.objects,
+                                              g.skills[r["mnum"]]), [],
+                             r["mnum"])
+        role, race = g.role("WIZARD"), g.race("human")
+        h = D.normalize({"name": "Nyx", "role": "WIZARD", "race": "human",
+                         "gender": "female", "align": "neutral"})
+        kit = g.kits["Wizard"] + [{"otyp": "TWO_HANDED_SWORD",
+                                   "cls": "WEAPON_CLASS", "spe": 0,
+                                   "qmin": 1, "qmax": 1, "bless": None}]
+        msgs = [m for _g, m in D.validate(h, role, race, {}, g.objects,
+                                          kits=[kit],
+                                          skills=g.skills["PM_WIZARD"])]
+        self.assertTrue(any("épée à deux mains" in m for m in msgs), msgs)
+
+
 class TestTiles(unittest.TestCase):
     def test_layers(self):
         for name, layer in D.LAYERS:

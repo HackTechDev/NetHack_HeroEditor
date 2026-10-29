@@ -116,7 +116,10 @@ rôle (un champ modifié est marqué ●, `Suppr` rend la valeur du jeu) :
   compte pour le poids moyen de sa classe) et la **capacité de port**
   (`weight_cap()` : 25 × (force + constitution) + 50, au plus 1000)
   selon les attributs que la race permet ; il avertit quand le héros
-  peut commencer chargé, ou le sera quoi qu'il tire ;
+  peut commencer chargé, ou le sera quoi qu'il tire, et quand une arme
+  relève d'une compétence que le rôle n'a pas (tables `Skill_X` de
+  `u_init.c` : une Netrunneuse avec une épée à deux mains reste au
+  niveau de base) ;
 - tuiles mâle et femelle (`t`), visibles dans les versions graphiques.
 
 ### La tuile
