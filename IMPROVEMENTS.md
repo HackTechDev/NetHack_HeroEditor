@@ -13,7 +13,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 
 | Thème | Fait | Reste |
 |---|---|---|
-| 1. Limites connues | 5 / 6 | 1.6 |
+| 1. Limites connues | 6 / 6 | — |
 | 2. Vérification | 0 / 6 | tout |
 | 3. Héros et parties | 0 / 7 | tout |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
@@ -22,10 +22,9 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | 7. Liens avec les autres outils | 0 / 3 | tout |
 | 8. Qualité du projet | 0 / 5 | tout |
 
-Prochaines étapes conseillées : le **titre féminin** de la ligne d'état
-(1.1), puis l'**historique des parties** du héros (3.1) et les
-**compétences** du rôle (4.1). Ensemble, elles rendent le héros
-« vivant » et complètent l'inventaire de départ.
+Prochaines étapes conseillées : l'**historique des parties** du héros
+(3.1) et les **compétences** du rôle (4.1). Ensemble, elles rendent le
+héros « vivant » et complètent l'inventaire de départ.
 
 ## 1. Limites connues
 
@@ -70,10 +69,15 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    (`# nhheroedit:orig` puis `# nhheroedit:orig+`) pour le retrait. Le
    `msgid` reste attendu sur une ligne (`xgettext` ne coupe que les
    textes longs, pas les titres de rang).
-6. **Mode wizard sous le nom « wizard »** **[facile]**. En `-D`, le jeu
-   remplace le nom du héros par « wizard » : la partie d'essai n'est
-   pas tout à fait celle du héros. Expliquer comment ajouter le nom à
-   `WIZARDS` dans `sysconf`, ou passer `-u` quand c'est permis.
+6. **Mode wizard sous le nom « wizard »** **[facile]** — ✅ **Fait**. En
+   `-D`, le jeu remplace toujours le nom du héros par « wizard »
+   (`set_playmode()`, `src/options.c`) : ni `sysconf` ni `-u` n'y
+   changent rien, et c'est voulu, puisque la partie wizard est ainsi
+   sauvegardée à part de la vraie. L'éditeur l'explique avant de lancer
+   le jeu, prévient quand une partie « wizard » sauvegardée sera reprise
+   à la place du héros, et quand `WIZARDS` ou `EXPLORERS` de `sysconf`
+   ne permettent pas le mode choisi (le jeu passerait en découverte ou
+   en partie normale).
 
 ## 2. Vérification
 

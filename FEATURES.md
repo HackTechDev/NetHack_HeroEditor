@@ -34,8 +34,10 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - 13 archétypes de Night City (un par rôle) avec biographie ; noms
   uniques dans le projet.
 - Jeu lancé avec le héros : partie normale, découverte ou wizard ;
-  avertissements (partie sauvegardée, jeu plus ancien que les sources,
-  `NETHACKOPTIONS` qui désigne un fichier).
+  avertissements (partie sauvegardée du héros, ou de « wizard » en mode
+  wizard ; jeu plus ancien que les sources ; mode refusé par `WIZARDS`
+  ou `EXPLORERS` de `sysconf` ; `NETHACKOPTIONS` qui désigne un
+  fichier).
 - Export des options en `.nethackrc` ; export et import d'un héros avec
   les changements de son rôle (`.nhhero.json`) ; fusion de projets.
 

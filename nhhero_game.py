@@ -9,6 +9,7 @@ self.run_external() sont fournis par nhheroedit.Editor.
 
 import glob
 import os
+import pwd
 import re
 import shlex
 
@@ -109,6 +110,42 @@ def saved_game(hackdir, name):
     return found[0] if found else None
 
 
+def sysconf(hackdir):
+    """{CLÉ: valeur} du sysconf du jeu ({} s'il n'y en a pas)."""
+    out = {}
+    try:
+        with open(os.path.join(hackdir, "sysconf"), encoding="utf-8",
+                  errors="replace") as f:
+            for line in f:
+                mo = re.match(r"^\s*([A-Z_]+)\s*=\s*(.*?)\s*$", line)
+                if mo:
+                    out[mo.group(1)] = mo.group(2)
+    except OSError:
+        pass
+    return out
+
+
+def mode_allowed(hackdir, mode, name):
+    """(permis ?, liste du sysconf) pour le mode -D (WIZARDS) ou -X
+    (EXPLORERS), comme check_user_string() du jeu : « * » pour tous,
+    sinon le compte Unix, ou le nom du héros avec CHECK_PLNAME=1. permis
+    vaut None quand le jeu n'a pas de sysconf."""
+    conf = sysconf(hackdir)
+    if not conf:
+        return None, ""
+    who = conf.get({"-D": "WIZARDS", "-X": "EXPLORERS"}[mode], "")
+    if who.startswith("*"):
+        return True, who
+    if conf.get("CHECK_PLNAME") == "1":
+        user = name
+    else:
+        try:
+            user = pwd.getpwuid(os.getuid()).pw_name
+        except KeyError:
+            return None, who
+    return user in who.split(), who
+
+
 class Game:
     def hackdir(self):
         """Dossier du jeu installé : NHHEROEDIT_HACKDIR, configuration,
@@ -167,14 +204,30 @@ class Game:
                       _("  intégrez (I), compilez (m) et mettez à jour (U)"
                         " pour"),
                       _("  jouer avec les rôles modifiés."), ""]
-        if mode != "-D" and saved_game(d, h["name"]):
+        if mode:
+            ok, who = mode_allowed(d, mode, h["name"])
+            if ok is False and mode == "-D":
+                lines += [_("⚠ sysconf réserve le mode wizard à : %s") %
+                          (who or _("personne")),
+                          _("  le jeu passera en mode découverte (ajoutez "
+                            "votre compte à WIZARDS)."), ""]
+            elif ok is False:
+                lines += [_("⚠ sysconf réserve le mode découverte à : %s")
+                          % (who or _("personne")),
+                          _("  le jeu partira en partie normale."), ""]
+        save_name = "wizard" if mode == "-D" else h["name"]
+        if saved_game(d, save_name):
             lines += [_("⚠ Une partie sauvegardée de « %s » existe : le jeu"
-                        " la") % h["name"],
+                        " la") % save_name,
                       _("  reprendra, sans tenir compte des options du "
                         "héros."), ""]
         if mode == "-D":
-            lines += [_("En mode wizard, le jeu prend le nom « wizard » "
-                        "(sysconf WIZARDS)."), ""]
+            lines += [_("En mode wizard, le jeu nomme toujours le héros "
+                        "« wizard » :"),
+                      _("sa partie reste ainsi à part de celle de « %s ». "
+                        "Rôle, race,") % h["name"],
+                      _("sexe, alignement et règles du rôle sont bien ceux "
+                        "du héros."), ""]
         _env, full = game_env(d, [])
         if not full:
             lines += [_("NETHACKOPTIONS désigne un fichier : seuls le nom, "

@@ -235,8 +235,6 @@ EN = {
         '  play with the changed roles.',
     '  reprendra, sans tenir compte des options du héros.':
         "  resume it, ignoring the hero's options.",
-    'En mode wizard, le jeu prend le nom « wizard » (sysconf WIZARDS).':
-        'In wizard mode, the game uses the name « wizard » (sysconf WIZARDS).',
     'NETHACKOPTIONS désigne un fichier : seuls le nom, le rôle':
         'NETHACKOPTIONS names a file: only the name, role',
     'et la race sont transmis (ligne de commande).':
@@ -991,4 +989,20 @@ EN = {
         'Remove everything',
     'garder : %s':
         'keep: %s',
+    '⚠ sysconf réserve le mode wizard à : %s':
+        '⚠ sysconf reserves wizard mode for: %s',
+    '  le jeu passera en mode découverte (ajoutez votre compte à WIZARDS).':
+        '  the game will switch to explore mode (add your account to WIZARDS).',
+    '⚠ sysconf réserve le mode découverte à : %s':
+        '⚠ sysconf reserves explore mode for: %s',
+    '  le jeu partira en partie normale.':
+        '  the game will start a normal game.',
+    'personne':
+        'nobody',
+    'En mode wizard, le jeu nomme toujours le héros « wizard » :':
+        'In wizard mode, the game always names the hero « wizard »:',
+    'sa partie reste ainsi à part de celle de « %s ». Rôle, race,':
+        'their game thus stays apart from the one of « %s ». Role, race,',
+    'sexe, alignement et règles du rôle sont bien ceux du héros.':
+        "gender, alignment and role rules are indeed the hero's.",
 }

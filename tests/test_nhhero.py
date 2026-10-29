@@ -352,6 +352,25 @@ class TestBuild(unittest.TestCase):
             self.assertEqual(G.build_interfaces(d), (["tty"], "tty"))
 
 
+class TestGame(unittest.TestCase):
+    def test_mode_allowed(self):
+        """Droits des modes -D et -X lus dans sysconf, comme le jeu."""
+        import pwd
+        me = pwd.getpwuid(os.getuid()).pw_name
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(G.mode_allowed(d, "-D", "Kai"), (None, ""))
+            with open(os.path.join(d, "sysconf"), "w") as f:
+                f.write("# WIZARDS=*\nWIZARDS=root %s\nEXPLORERS=root\n"
+                        % me)
+            self.assertEqual(G.mode_allowed(d, "-D", "Kai"),
+                             (True, "root " + me))
+            self.assertFalse(G.mode_allowed(d, "-X", "Kai")[0])
+            with open(os.path.join(d, "sysconf"), "a") as f:
+                f.write("CHECK_PLNAME=1\nEXPLORERS=*\n")
+            self.assertFalse(G.mode_allowed(d, "-D", "Kai")[0])
+            self.assertTrue(G.mode_allowed(d, "-X", "Kai")[0])
+
+
 class TestProject(unittest.TestCase):
     def test_save_load(self):
         with tempfile.TemporaryDirectory() as d:
