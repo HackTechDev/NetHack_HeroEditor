@@ -15,7 +15,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 |---|---|---|
 | 1. Limites connues | 6 / 6 | — |
 | 2. Vérification | 0 / 6 | tout |
-| 3. Héros et parties | 5 / 7 | 3.6 et 3.7 |
+| 3. Héros et parties | 6 / 7 | 3.7 |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
 | 5. Tuiles | 0 / 4 | tout |
 | 6. Projets et fichiers | 0 / 3 | tout |
@@ -131,12 +131,14 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    `-w` pour `j`), symboles (lus dans le fichier `symbols` du jeu),
    ramassage automatique, couleurs Night City (`hilite_status`,
    `menucolors`, `MENUCOLOR`). Écrit dans le `.nethackrc` du héros et
-   passé par `j` (sauf les règles `MENUCOLOR`, que `NETHACKOPTIONS` ne
-   prend pas). Vérifié en jeu.
-6. **Fichier d'options complet** **[facile]**. `x` n'écrit que les
-   options du héros ; proposer aussi un fichier complet (le
-   `~/.nethackrc` actuel suivi des options du héros), utilisable tel
-   quel avec `NETHACKOPTIONS=@fichier`.
+   passé par `j`. Vérifié en jeu.
+6. **Fichier d'options complet** **[facile]** — ✅ **Fait**. `x` écrit au
+   choix les options du héros ou un fichier complet : votre
+   configuration (`~/.nethackrc` ou le fichier de `NETHACKOPTIONS`),
+   puis le héros, `windowtype` en tête, les options redéfinies mises en
+   commentaire (le jeu refuse une option donnée deux fois). `j` s'en
+   sert aussi : les règles `MENUCOLOR` passent, et un `NETHACKOPTIONS`
+   qui désigne un fichier n'empêche plus de transmettre les options.
 7. **Biographie dans le jeu** **[gros]**. Montrer la biographie au début
    de la partie, à la place ou à la suite du texte d'introduction
    (`legacy`), ce qui demande une modification du jeu.

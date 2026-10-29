@@ -51,6 +51,9 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - Historique des parties du héros (`xlogfile`) : résumé dans l'aperçu,
   détail par partie avec la fin traduite par les catalogues du jeu,
   mode découverte ou wizard, conduites tenues.
+- Fichier d'options complet (votre configuration puis le héros, options
+  redéfinies mises en commentaire, `windowtype` en tête) : utilisé par
+  `j` (`NETHACKOPTIONS=@fichier`) et exportable par `x`.
 - Export des options en `.nethackrc` ; export et import d'un héros avec
   les changements de son rôle (`.nhhero.json`) ; fusion de projets.
 

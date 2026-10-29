@@ -426,6 +426,34 @@ class TestDisplay(unittest.TestCase):
         self.assertIn("nethack -wcurses -u Kestrel -X", cmd)
 
 
+class TestFullRc(unittest.TestCase):
+    @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
+    def test_full_rc(self):
+        """Fichier complet : les options du joueur que le héros redéfinit
+        sont mises en commentaire, les autres restent ; windowtype en
+        tête."""
+        g = I.GameData(SRC)
+        h = T.from_template(0)
+        h.update(windowtype="tty", autopickup="off")
+        role, race = g.role(h["role"]), g.race(h["race"])
+        base = ("# mon rc\nOPTIONS=windowtype:curses\n"
+                "OPTIONS=name:util01,!legacy,autopickup,time\n"
+                "OPTION=colour\nMENUCOLOR=\"x\"=red\n")
+        rc = D.full_rc(base, h, role, race, g.names, extra="role:Wiz,news")
+        lines = rc.splitlines()
+        opts = [l for l in lines if l.startswith("OPTIONS=")]
+        self.assertEqual(opts[0], "OPTIONS=windowtype:tty")
+        self.assertIn("OPTIONS=!legacy,time", lines)
+        self.assertIn("OPTIONS=news", lines)
+        self.assertIn('MENUCOLOR="x"=red', lines)
+        self.assertIn("OPTION=colour", lines)       # le héros n'y touche pas
+        names = [D.option_name(o[8:]) for o in opts]
+        for n in ("windowtype", "name", "role", "autopickup"):
+            self.assertEqual(names.count(n), 1, n)
+        self.assertEqual(D.option_name("!autopickup"), "autopickup")
+        self.assertEqual(D.option_name(" colour"), "color")
+
+
 class TestRandom(unittest.TestCase):
     @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
     def test_random_hero(self):

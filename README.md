@@ -83,7 +83,7 @@ titre anglais l'évite.
 | Couleurs | profil Night City : `statushilites`, règles `hilite_status` (PV, énergie, or, attributs, états), `menucolors` et règles `MENUCOLOR` (objets bénis, maudits, portés, en main) |
 
 Les règles `MENUCOLOR` ne passent pas par `NETHACKOPTIONS` : elles sont
-dans le `.nethackrc` écrit par `x`.
+dans le fichier d'options complet et dans le `.nethackrc` écrit par `x`.
 
 Seules les combinaisons permises par le rôle **et** la race sont
 acceptées (✖ sinon) ; changer de rôle ramène race, sexe et alignement à
@@ -136,8 +136,7 @@ peindre, clic droit pipette, molette pour la couleur.
 
 ## Jouer
 
-`j` lance NetHack avec le héros (options passées par `NETHACKOPTIONS`,
-en plus de votre `.nethackrc`) : partie normale, mode découverte (`-X`)
+`j` lance NetHack avec le héros : partie normale, mode découverte (`-X`)
 ou mode wizard (`-D`). Si le héros a une partie sauvegardée, l'éditeur
 propose de la reprendre (le jeu ignore alors les options du héros), de
 la **mettre de côté** dans `parties/` de l'éditeur pour en commencer une
@@ -148,8 +147,17 @@ que les sources modifiées, ou si `sysconf` (`WIZARDS`, `EXPLORERS`) ne
 vous permet pas le mode choisi. En mode wizard, le jeu nomme toujours
 le héros « wizard » (sa partie sauvegardée reste ainsi à part de la
 vraie) ; rôle, race, sexe, alignement et règles du rôle sont bien ceux
-du héros. `x` écrit les options dans `<nom>.nethackrc`, à recopier dans
-`~/.nethackrc`.
+du héros.
+
+Les options passent par un **fichier d'options complet**
+(`NETHACKOPTIONS=@fichier`, écrit dans le dossier temporaire) : votre
+configuration (`~/.nethackrc`, ou le fichier que désigne déjà
+`NETHACKOPTIONS`, plus ses options), puis celles du héros, avec
+`windowtype` en tête. Les options de votre configuration que le héros
+redéfinit y sont mises en commentaire, car le jeu refuse une option
+donnée deux fois. `x` écrit au choix les seules options du héros
+(`<nom>.nethackrc`, à recopier dans `~/.nethackrc`) ou ce fichier
+complet (`<nom>.complet.nethackrc`).
 
 Quand l'éditeur tourne dans **tmux**, le jeu s'ouvre à côté de lui : un
 panneau à droite si la fenêtre a au moins 170 colonnes, sinon une

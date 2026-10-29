@@ -1718,18 +1718,33 @@ class Editor(Popups, Game):
         if not role or not race:
             return
         base = P.export_path(os.path.dirname(self.project), h)
-        path = base[:-len(P.HERO_SUFFIX)] + ".nethackrc"
         try:
+            full = self.menu(_("Options de %s") % h["name"], [
+                (_("Options du héros seulement"),
+                 _("à recopier dans ~/.nethackrc")),
+                (_("Fichier complet"),
+                 _("votre configuration puis le héros : "
+                   "NETHACKOPTIONS=@fichier"))], filterable=False) == 1
+            path = base[:-len(P.HERO_SUFFIX)] + (
+                ".complet.nethackrc" if full else ".nethackrc")
             path = os.path.expanduser(self.input_line(
                 _("Écrire les options du héros dans"), path,
-                _("à recopier dans ~/.nethackrc, ou NETHACKOPTIONS=@fichier")))
+                _("NETHACKOPTIONS=@%s nethack") % os.path.basename(path)
+                if full else _("à recopier dans ~/.nethackrc")))
         except Cancel:
             return
         if os.path.exists(path) and not self.confirm(
                 _("Remplacer %s ?") % path):
             return
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(D.nethackrc(h, role, race, g.names, self.theme))
+        try:
+            if full:
+                G.write_full_rc(path, h, role, race, g.names, self.theme)
+            else:
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(D.nethackrc(h, role, race, g.names, self.theme))
+        except OSError as e:
+            self.message_box(_("Écriture impossible"), [str(e)])
+            return
         self.msg = _("Options écrites : %s") % path
 
     # --- sources ------------------------------------------------------------

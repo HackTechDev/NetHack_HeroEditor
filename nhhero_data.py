@@ -796,6 +796,57 @@ def nethackrc(h, role, race, names, theme="cyber"):
     return "\n".join(lines) + "\n"
 
 
+# autres noms d'options (optlist.h)
+OPTION_ALIASES = {"colour": "color", "align": "alignment",
+                  "character": "role", "pet": "pettype"}
+
+
+def option_name(item):
+    """Nom de l'option d'un élément d'OPTIONS= (« !autopickup »,
+    « nolegacy », « name:Kai ») : en minuscules, alias résolus."""
+    name = item.strip().lstrip("!").split(":", 1)[0].strip().lower()
+    return OPTION_ALIASES.get(name, name)
+
+
+def full_rc(base, h, role, race, names, theme="cyber", extra="",
+            source="~/.nethackrc"):
+    """Fichier d'options complet : windowtype du héros, puis le texte
+    base (votre .nethackrc) et les options extra (NETHACKOPTIONS), puis
+    le héros. Les options de base que le héros redéfinit sont mises en
+    commentaire (le jeu refuse une option donnée deux fois)."""
+    hero = nethackrc(h, role, race, names, theme).splitlines()
+    head = [l for l in hero if l.startswith("OPTIONS=windowtype:")]
+    hero = [l for l in hero if l not in head]
+    mine = {option_name(l[len("OPTIONS="):]) for l in head + hero
+            if l.startswith("OPTIONS=")}
+
+    def redefined(item):
+        n = option_name(item)
+        return n in mine or (n.startswith("no") and n[2:] in mine)
+
+    out = ["# Fichier d'options complet de %s (nhheroedit) :" % (
+        h["name"] or "?"),
+        "#   %s, puis les options du héros." % source,
+        "# Pour jouer : NETHACKOPTIONS=@<ce fichier> nethack"] + head + [""]
+    lines = base.splitlines()
+    if extra:
+        lines += ["", "# NETHACKOPTIONS", "OPTIONS=" + extra]
+    for line in lines:
+        mo = re.match(r"^\s*OPTIONS?\s*=\s*(.*)$", line, re.I)
+        if not mo:
+            out.append(line)
+            continue
+        items = mo.group(1).split(",")
+        keep = [i for i in items if not redefined(i)]
+        if len(keep) == len(items):
+            out.append(line)
+            continue
+        out.append("# nhheroedit, redéfini par le héros : " + line.strip())
+        if [i for i in keep if i.strip()]:
+            out.append("OPTIONS=" + ",".join(keep))
+    return "\n".join(out + [""] + hero) + "\n"
+
+
 def kit_problems(items, objects):
     """Problèmes d'un inventaire : [(gravité, message)]."""
     out = []

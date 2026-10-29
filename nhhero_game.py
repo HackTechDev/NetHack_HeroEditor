@@ -108,11 +108,57 @@ def game_env(hackdir, options):
     return env, True
 
 
-def game_command(hackdir, h, role, race, mode=""):
+def user_rc():
+    """(chemin, texte, options en plus) de la configuration du joueur :
+    le fichier désigné par NETHACKOPTIONS (« @… », « /… »), sinon
+    ~/.nethackrc et les options de NETHACKOPTIONS."""
+    env = os.environ.get("NETHACKOPTIONS", "")
+    extra = ""
+    if env.startswith("@"):
+        path = env[1:]
+    elif env.startswith("/"):
+        path = env
+    else:
+        path, extra = os.path.expanduser("~/.nethackrc"), env
+    try:
+        with open(os.path.expanduser(path), encoding="utf-8",
+                  errors="replace") as f:
+            text = f.read()
+    except OSError:
+        text = ""
+    return path, text, extra
+
+
+def write_full_rc(path, h, role, race, names, theme="cyber"):
+    """Écrit le fichier d'options complet du héros dans path."""
+    src, text, extra = user_rc()
+    home = os.path.expanduser("~")
+    src = "~" + src[len(home):] if src.startswith(home + os.sep) else src
+    data = D.full_rc(text, h, role, race, names, theme, extra, src)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(data)
+    os.replace(tmp, path)
+    return path
+
+
+def play_rc_path(name):
+    """Fichier d'options complet écrit pour j (dossier temporaire)."""
+    import tempfile
+    return os.path.join(tempfile.gettempdir(), "nhheroedit-%d-%s.nethackrc"
+                        % (os.getuid(), re.sub(r"[^A-Za-z0-9_]", "_", name)))
+
+
+def game_command(hackdir, h, role, race, mode="", rc=None):
     """Commande shell qui lance le jeu avec le héros. mode : "" (partie
-    normale), "-X" (découverte) ou "-D" (wizard)."""
-    env, full = game_env(hackdir, D.hero_options(h, role, race) +
-                         D.display_options(h))
+    normale), "-X" (découverte) ou "-D" (wizard). rc : fichier d'options
+    complet (NETHACKOPTIONS=@rc) ; sans lui, les options du héros
+    s'ajoutent à NETHACKOPTIONS."""
+    if rc:
+        env, full = {"HACKDIR": hackdir, "NETHACKOPTIONS": "@" + rc}, True
+    else:
+        env, full = game_env(hackdir, D.hero_options(h, role, race) +
+                             D.display_options(h))
     args = ["-u", h["name"]] if mode != "-D" else []
     if h["windowtype"]:
         args.insert(0, "-w" + h["windowtype"])
@@ -598,10 +644,15 @@ class Game:
                       _("sexe, alignement et règles du rôle sont bien ceux "
                         "du héros."), ""]
         _env, full = game_env(d, [])
-        if not full:
+        if not full and not rc:
             lines += [_("NETHACKOPTIONS désigne un fichier : seuls le nom, "
                         "le rôle"),
                       _("et la race sont transmis (ligne de commande)."), ""]
+        try:
+            rc = write_full_rc(play_rc_path(h["name"]), h, role, race,
+                               g.names, self.theme)
+        except OSError:
+            rc = None
         lines += ["  " + o for o in D.hero_options(h, role, race)]
         disp = D.display_options(h)
         if h["windowtype"] or disp:
@@ -610,13 +661,16 @@ class Game:
                 [o for o in disp if not o.startswith("hilite_status")] +
                 ([_("%d règles de couleur") % len(D.NIGHTCITY_HILITES)]
                  if h["colors"] else []))]
+        if rc:
+            lines += ["", _("Options : %s") % rc,
+                      _("  (votre configuration, puis celles du héros)")]
         if tmuxed:
             lines += ["", _("Le jeu s'ouvrira dans tmux, à côté de "
                             "l'éditeur.")]
         lines += ["", _("Lancer NetHack maintenant ?")]
         if not self.confirm("\n".join(lines), _("Jouer")):
             return
-        cmd = game_command(d, h, role, race, mode)
+        cmd = game_command(d, h, role, race, mode, rc)
         if tmuxed:
             where = self.start_in_tmux(cmd, h["name"])
             if where:

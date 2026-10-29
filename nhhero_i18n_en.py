@@ -833,8 +833,6 @@ EN = {
         'No hero',
     'Écrire les options du héros dans':
         "Write the hero's options to",
-    'à recopier dans ~/.nethackrc, ou NETHACKOPTIONS=@fichier':
-        'to copy into ~/.nethackrc, or NETHACKOPTIONS=@file',
     'Indiquez-les avec --src ou NHHEROEDIT_SRC.':
         'Give them with --src or NHHEROEDIT_SRC.',
     "Écrire dans les sources (%s) ?\n\nRôles modifiés : %s\n%s\nLes fichiers sont d'abord copiés dans sauvegardes/.":
@@ -1189,4 +1187,22 @@ EN = {
         'Colors',
     "couleurs de la ligne d'état et des menus (hilite_status, MENUCOLOR)":
         'colors of the status line and menus (hilite_status, MENUCOLOR)',
+    '  (votre configuration, puis celles du héros)':
+        "  (your configuration, then the hero's)",
+    'Options : %s':
+        'Options: %s',
+    'Écriture impossible':
+        'Cannot write',
+    'Options de %s':
+        'Options of %s',
+    'à recopier dans ~/.nethackrc':
+        'to copy into ~/.nethackrc',
+    'Options du héros seulement':
+        "The hero's options only",
+    'Fichier complet':
+        'Complete file',
+    'votre configuration puis le héros : NETHACKOPTIONS=@fichier':
+        'your configuration then the hero: NETHACKOPTIONS=@file',
+    'NETHACKOPTIONS=@%s nethack':
+        'NETHACKOPTIONS=@%s nethack',
 }
