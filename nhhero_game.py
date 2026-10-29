@@ -642,6 +642,7 @@ class Game:
             self.message_box(_("Héros incomplet"), [_("À corriger avant "
                              "de jouer :")] + ["  ✖ " + e for e in errs])
             return
+        role = D.role_with(role, self.mod(h["role"]))   # animal imposé
         try:
             mode = ["", "-X", "-D"][self.menu(
                 _("Jouer avec %s") % h["name"], [

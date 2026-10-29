@@ -1257,4 +1257,18 @@ EN = {
         'Incomplete hero: %s',
     'Jeu introuvable : indiquez son dossier avec NHHEROEDIT_HACKDIR.':
         'Game not found: give its directory with NHHEROEDIT_HACKDIR.',
+    'Animal imposé':
+        'Fixed pet',
+    'animal de départ du rôle, robots de nhmonedit compris ; au choix du joueur : option pettype':
+        "the role's starting pet, nhmonedit robots included; player's choice: pettype option",
+    'au choix du joueur (option pettype)':
+        "player's choice (pettype option)",
+    '%s (robot de nhmonedit)':
+        '%s (nhmonedit robot)',
+    '%s  ✖ absent des sources':
+        '%s  ✖ missing from the sources',
+    'le jeu ne nomme que le chaton, le petit chien et le poney : %s restera sans nom':
+        'the game only names the kitten, the little dog and the pony: %s will stay unnamed',
+    'Animal %s du rôle %s absent de %s (robot retiré de nhmonedit ?)':
+        'Pet %s of the role %s missing from %s (robot removed from nhmonedit?)',
 }

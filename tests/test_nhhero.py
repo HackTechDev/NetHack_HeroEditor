@@ -408,6 +408,65 @@ class TestGame(unittest.TestCase):
             self.assertTrue(G.mode_allowed(d, "-X", "Kai")[0])
 
 
+class TestPet(unittest.TestCase):
+    ROBOT = ("    /* nhmonedit:begin SECURITY_BOT */\n"
+             "    MON(NAM(\"security bot\"), S_GOLEM,\n"
+             "        LVL(6, 10, 4, 10, 0), (G_GENO | 2),\n"
+             "        A(NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK),\n"
+             "        SIZ(900, 0, MS_SOLDIER, MZ_MEDIUM), 0, 0,\n"
+             "        M1_MINDLESS, M2_NEUTER, 0,\n"
+             "        8, CLR_BRIGHT_BLUE, SECURITY_BOT),\n"
+             "    /* nhmonedit:end SECURITY_BOT */\n")
+
+    def test_model(self):
+        role = {"petnum": "PM_LITTLE_DOG"}
+        self.assertEqual(D.effective(dict(role, allow=[], attrbase=[],
+                                          attrdist=[], hpadv=[0, 0],
+                                          enadv=[0, 0], gods=[]),
+                                     {"petnum": "PM_X"})["petnum"], "PM_X")
+        self.assertEqual(D.normalize_mod({"petnum": "PM_SECURITY_BOT"}),
+                         {"petnum": "PM_SECURITY_BOT"})
+        self.assertEqual(D.normalize_mod({"petnum": "rm -rf"}), {})
+        self.assertIs(D.role_with(role, {}), role)
+        self.assertEqual(D.role_with(role, {"petnum": "PM_PONY"})["petnum"],
+                         "PM_PONY")
+        self.assertEqual(D.pet_monster("PM_KITTEN"), "kitten")
+        self.assertEqual(D.pet_monster("PM_SECURITY_BOT"), "security bot")
+        self.assertEqual(D.pet_monster("NON_PM"), "")
+
+    @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
+    def test_install(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = copy_tree(tmp)
+            p = os.path.join(d, I.MONSTERS_H)
+            with open(p) as f:
+                text = f.read()
+            pos = text.index("    /*\n     * humans")
+            with open(p, "w") as f:
+                f.write(text[:pos] + self.ROBOT + text[pos:])
+            self.assertEqual(I.editor_monsters(d),
+                             [("PM_SECURITY_BOT", "security bot")])
+            ids = I.monster_ids(d)
+            self.assertTrue({"PM_KITTEN", "PM_SILVER_DRAGON",
+                             "PM_SECURITY_BOT"} <= ids)
+            out = I.plan(d, {"RANGER": {"petnum": "PM_SECURITY_BOT"}})
+            self.assertIn("      PM_SECURITY_BOT,\n", out[I.ROLE_C])
+            self.assertEqual(I.strip_c(out[I.ROLE_C]),
+                             I.clean_text(d, I.ROLE_C))
+            with self.assertRaises(I.InstallError):
+                I.plan(d, {"RANGER": {"petnum": "PM_NOBODY"}})
+        g = I.GameData(SRC)
+        h = D.normalize({"name": "K", "role": "Ranger", "race": "human",
+                         "gender": "female", "align": "neutral",
+                         "petname": "Rex"})
+        role = D.role_with(g.role("RANGER"), {"petnum": "PM_SECURITY_BOT"})
+        self.assertFalse([o for o in D.hero_options(h, role, g.race("human"))
+                          if "name:Rex" in o])
+        self.assertTrue(any("sans nom" in m for _g, m in D.validate(
+            h, g.role("RANGER"), g.race("human"),
+            {"petnum": "PM_SECURITY_BOT"}, g.objects)))
+
+
 class TestTiles(unittest.TestCase):
     def test_layers(self):
         for name, layer in D.LAYERS:

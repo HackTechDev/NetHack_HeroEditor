@@ -266,6 +266,40 @@ class GameData:
                           self.tiles_text, re.M)
 
 
+# monstre ajouté par nhmonedit : MON(NAM("security bot"), …, SECURITY_BOT)
+ROBOT_RE = re.compile(r"/\* nhmonedit:begin (\w+) \*/\s*"
+                      r"MON\(NAMS?\(\"([^\"]*)\""
+                      r".*?,\s*(\w+)\),?\s*/\* nhmonedit:end \1 \*/", re.S)
+
+
+def monster_ids(src):
+    """Identifiants PM_… des monstres de monsters.h (vide si le fichier
+    est illisible) : dernier argument de chaque MON(NAM…)."""
+    try:
+        text = _read(src, MONSTERS_H)
+    except OSError:
+        return set()
+    out = set()
+    for mo in re.finditer(r"\bMON\(NAMS?\(", text):
+        depth, k = 1, mo.start() + 3        # k : parenthèse de MON(
+        while depth and k + 1 < len(text):
+            k += 1
+            depth += {"(": 1, ")": -1}.get(text[k], 0)
+        last = re.search(r",\s*(\w+)\s*\)$", text[mo.start():k + 1])
+        if last:
+            out.add("PM_" + last.group(1))
+    return out
+
+
+def editor_monsters(src):
+    """Monstres ajoutés par nhmonedit dans monsters.h : [(PM_…, nom)]."""
+    try:
+        text = _read(src, MONSTERS_H)
+    except OSError:
+        return []
+    return [("PM_" + m.group(3), m.group(2)) for m in ROBOT_RE.finditer(text)]
+
+
 def role_tile_names(monsters_h):
     """{PM_ROLE: nom du monstre dans monsters.txt} (« cave dweller »)."""
     out = {}
@@ -324,6 +358,11 @@ def role_entry(text, role, mod):
     if "gods" in mod:
         for i, god in zip((2, 3, 4), mod["gods"]):
             reps.append((it[i].start, it[i].end, D.c_str(god)))
+    if "petnum" in mod:
+        # le commentaire du jeu (« Orion & canis major ») part avec l'animal
+        note = re.match(r"[ \t]*/\*[^\n]*?\*/", text[it[9].end:])
+        reps.append((it[9].start, it[9].end + (note.end() if note else 0),
+                     mod["petnum"]))
     if "allow" in mod:
         bits = [b for b in D.RACE_BITS if b in eff["allow"]] + \
             [D.GENDER_BIT[x] for x in D.GENDERS
@@ -360,7 +399,7 @@ def role_mod_c(mod):
     """Les modifications qui touchent role.c."""
     return {k: v for k, v in mod.items()
             if k in ("ranks_en", "gods", "allow", "attrbase", "attrdist",
-                     "hp", "en")}
+                     "hp", "en", "petnum")}
 
 
 def _home(path):
@@ -742,6 +781,13 @@ def plan(src, mods, game=None, origins=None, story=None):
     for key in mods:
         if not game.role(key):
             raise InstallError(_("Rôle %s absent de %s") % (key, ROLE_C))
+    pms = monster_ids(src)
+    for key, mod in sorted(mods.items()):
+        pet = mod.get("petnum", D.NO_PET)
+        if pet != D.NO_PET and pms and pet not in pms:
+            raise InstallError(_("Animal %s du rôle %s absent de %s (robot "
+                                 "retiré de nhmonedit ?)")
+                               % (pet, key, MONSTERS_H))
     out = {}
     out[ROLE_C] = insert_roles(clean_text(src, ROLE_C), game, mods)
     out[ROLE_C] = insert_projects(out[ROLE_C], {

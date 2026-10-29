@@ -49,6 +49,11 @@ PET_NAME_OPTION = {"cat": "catname", "dog": "dogname",
                    "horse": "horsename"}
 PET_OF_PM = {"PM_KITTEN": "cat", "PM_LITTLE_DOG": "dog", "PM_PONY": "horse"}
 PET_MONSTER = {"cat": "kitten", "dog": "little dog", "horse": "pony"}
+# animal imposé par le rôle (petnum de struct Role) : NON_PM laisse le
+# joueur choisir (pettype) ; les robots de nhmonedit s'ajoutent à la liste
+NO_PET = "NON_PM"
+ROLE_PETS = [(NO_PET, "")] + [(pm, PET_MONSTER[p])
+                              for pm, p in PET_OF_PM.items()]
 
 # options de « jeu de rôle » (conduites choisies avant la partie)
 CONDUCTS = [
@@ -637,7 +642,7 @@ class Names:
 # champs d'un rôle que l'éditeur peut changer (absents : valeur du jeu)
 ROLE_FIELDS = ["ranks_en", "ranks_fr", "ranks_cyber", "gods", "allow",
                "attrbase", "attrdist", "hp", "en", "kits", "gold",
-               "intrinsics", "tile_male", "tile_female"]
+               "intrinsics", "petnum", "tile_male", "tile_female"]
 
 
 def role_key(role):
@@ -671,8 +676,25 @@ def effective(role, mod, names=None):
         "gods": list(mod.get("gods", role["gods"])),
         "gold": mod.get("gold"),
         "intrinsics": list(mod.get("intrinsics", [])),
+        "petnum": mod.get("petnum", role["petnum"]),
     }
     return out
+
+
+def role_with(role, mod):
+    """Le rôle avec l'animal imposé de mod (pour les options du héros)."""
+    if not role or "petnum" not in (mod or {}):
+        return role
+    return dict(role, petnum=mod["petnum"])
+
+
+def pet_monster(petnum, robots=()):
+    """Nom anglais du monstre PM_… (robots : [(PM_…, nom)]), ou ""."""
+    if petnum == NO_PET:
+        return ""
+    if petnum in PET_OF_PM:
+        return PET_MONSTER[PET_OF_PM[petnum]]
+    return dict(robots).get(petnum) or petnum[3:].lower().replace("_", " ")
 
 
 def allowed(role_allow, race, gender=None, align=None):
@@ -775,6 +797,9 @@ def normalize_mod(mod):
                       for n, items in v.items() if isinstance(items, list)}
         elif k == "gold" and (v is None or isinstance(v, int)):
             out[k] = v
+        elif k == "petnum" and isinstance(v, str) and \
+                re.fullmatch(r"NON_PM|PM_[A-Z0-9_]+", v):
+            out[k] = v
         elif k == "intrinsics" and isinstance(v, list):
             out[k] = [x for x in v if x in INTRINSIC_FR]
         elif k.startswith("tile_") and isinstance(v, list) and \
@@ -807,7 +832,7 @@ def hero_options(h, role, race):
     if h["petname"] and h["pet"] != "none":
         pet = h["pet"] or PET_OF_PM.get(role["petnum"])
         keys = [PET_NAME_OPTION[pet]] if pet else \
-            ["catname", "dogname"]
+            [] if role["petnum"] != NO_PET else ["catname", "dogname"]
         opts += ["%s:%s" % (k, h["petname"]) for k in keys]
     if h["fruit"]:
         opts.append("fruit:" + h["fruit"])
@@ -963,11 +988,16 @@ def validate(h, role, race, mod, objects, others=()):
     if any(o["name"] == h["name"] for o in others if h["name"]):
         out.append(("attention", _("un autre héros du projet porte ce nom "
                                    "(même partie sauvegardée)")))
-    if h["pet"] and h["pet"] != "none" and role["petnum"] != "NON_PM":
+    petnum = eff["petnum"]
+    if h["pet"] and h["pet"] != "none" and petnum != NO_PET:
         out.append(("attention", _("le rôle a un animal imposé (%s) : "
                                    "l'option pettype est sans effet")
-                    % PET_MONSTER.get(PET_OF_PM.get(role["petnum"]),
-                                      role["petnum"])))
+                    % pet_monster(petnum)))
+    if h["petname"] and h["pet"] != "none" and petnum != NO_PET and \
+            petnum not in PET_OF_PM:
+        out.append(("attention", _("le jeu ne nomme que le chaton, le petit "
+                                   "chien et le poney : %s restera sans "
+                                   "nom") % pet_monster(petnum)))
     if h["fruit"] and len(h["fruit"]) > 31:
         out.append(("erreur", _("nom du fruit trop long (31 caractères)")))
     if re.search(r"[,:]", h["fruit"] + h["petname"]):

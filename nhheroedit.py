@@ -473,6 +473,9 @@ class Editor(Popups, Game):
              "vide = celui du jeu")),
             ("intrinsics", "intrinsics", _("Intrinsèques"), _("capacités "
              "données dès le départ, en plus de celles du rôle")),
+            ("petnum", "petnum", _("Animal imposé"), _("animal de départ du "
+             "rôle, robots de nhmonedit compris ; au choix du joueur : "
+             "option pettype")),
         ]
         kits = self.game().kit_names(role)
         for n in kits:
@@ -488,7 +491,7 @@ class Editor(Popups, Game):
 
     def is_role_field(self, f):
         return f[0] in ("rank", "god", "allow", "attr", "adv", "gold",
-                        "intrinsics", "kit", "tile")
+                        "intrinsics", "petnum", "kit", "tile")
 
     def field_modified(self, h, f):
         mod = self.mod(h["role"])
@@ -512,7 +515,7 @@ class Editor(Popups, Game):
                        for k in ("attrbase", "attrdist"))
         if kind == "adv":
             return key in mod
-        if kind in ("gold", "intrinsics"):
+        if kind in ("gold", "intrinsics", "petnum"):
             return key in mod
         if kind == "kit":
             return key in mod.get("kits", {})
@@ -541,6 +544,29 @@ class Editor(Popups, Game):
     def kit(self, h, name):
         return copy.deepcopy(self.mod(h["role"]).get("kits", {}).get(
             name, self.game().kits.get(name, [])))
+
+    def robots(self):
+        """Monstres de nhmonedit intégrés aux sources : [(PM_…, nom)],
+        relus quand monsters.h change."""
+        try:
+            mt = os.path.getmtime(os.path.join(self.src, I.MONSTERS_H))
+        except OSError:
+            return []
+        if getattr(self, "_robots", (None,))[0] != mt:
+            self._robots = (mt, I.editor_monsters(self.src))
+        return self._robots[1]
+
+    def pet_label(self, petnum):
+        """Nom de l'animal PM_… dans le thème ; NON_PM : au choix."""
+        if petnum == D.NO_PET:
+            return _("au choix du joueur (option pettype)")
+        name = self.game().names.monster(D.pet_monster(petnum, self.robots()),
+                                         self.theme)
+        if petnum in D.PET_OF_PM:
+            return name
+        if petnum in dict(self.robots()):
+            return _("%s (robot de nhmonedit)") % name
+        return _("%s  ✖ absent des sources") % name
 
     def tile(self, h, gender):
         t = self.mod(h["role"]).get("tile_" + gender)
@@ -594,10 +620,10 @@ class Editor(Popups, Game):
         if kind == "pet":
             if h["pet"]:
                 return dict(D.PETS)[h["pet"]], 0
-            if role and role["petnum"] in D.PET_OF_PM:
-                mon = D.PET_MONSTER[D.PET_OF_PM[role["petnum"]]]
-                return _("imposé par le rôle : %s") % g.names.monster(
-                    mon, self.theme), curses.A_DIM
+            pet = self.eff(h)["petnum"] if role else D.NO_PET
+            if pet != D.NO_PET:
+                return _("imposé par le rôle : %s") % self.pet_label(pet), \
+                    curses.A_DIM
             return _("au hasard : %s ou %s") % (
                 g.names.monster("kitten", self.theme),
                 g.names.monster("little dog", self.theme)), curses.A_DIM
@@ -653,6 +679,9 @@ class Editor(Popups, Game):
                 return (_("celui du jeu : %s") % gg if gg else
                         _("celui du jeu : aucun")), curses.A_DIM
             return str(v), 0
+        if kind == "petnum":
+            return self.pet_label(self.eff(h)["petnum"]), \
+                0 if "petnum" in self.mod(h["role"]) else curses.A_DIM
         if kind == "intrinsics":
             v = self.eff(h)["intrinsics"]
             return (", ".join(D.INTRINSIC_FR[x] for x in v), 0) if v else \
@@ -954,6 +983,13 @@ class Editor(Popups, Game):
                 for x in D.ALIGNS]
         if kind == "pet":
             return list(D.PETS)
+        if kind == "petnum":
+            pms = [pm for pm, _m in D.ROLE_PETS] + \
+                [pm for pm, _m in self.robots()]
+            cur = self.eff(h)["petnum"]
+            if cur not in pms:
+                pms.append(cur)
+            return [(pm, self.pet_label(pm)) for pm in pms]
         return []
 
     def display_choices(self, key):
@@ -996,6 +1032,13 @@ class Editor(Popups, Game):
             v = self.eff(h)["gold"] or 0
             self.checkpoint()
             self.set_mod(h["role"], "gold", max(0, v + 50 * delta), None)
+        elif kind == "petnum":
+            ch = [c for c, _d in self.choices(kind, h)]
+            v = self.eff(h)["petnum"]
+            self.checkpoint()
+            self.set_mod(h["role"], "petnum",
+                         ch[(ch.index(v) + delta) % len(ch)],
+                         self.role_of(h)["petnum"])
 
     def clear_field(self):
         h = self.hero()
@@ -1040,7 +1083,7 @@ class Editor(Popups, Game):
                 v = self.eff(h)[k]
                 v[key] = role[k][key]
                 self.set_mod(rk, k, v, role[k])
-        elif kind in ("adv", "gold", "intrinsics"):
+        elif kind in ("adv", "gold", "intrinsics", "petnum"):
             self.set_mod(rk, key, None, None)
         elif kind == "kit":
             kits = dict(mod.get("kits", {}))
@@ -1155,6 +1198,14 @@ class Editor(Popups, Game):
                                    self.eff(h)["intrinsics"])
                 self.checkpoint()
                 self.set_mod(h["role"], "intrinsics", v, [])
+            elif kind == "petnum":
+                ch = self.choices(kind, h)
+                pms = [c for c, _d in ch]
+                i = self.menu(label, [(d, "") for _c, d in ch],
+                              pms.index(self.eff(h)["petnum"]),
+                              filterable=len(ch) > 6)
+                self.checkpoint()
+                self.set_mod(h["role"], "petnum", pms[i], role["petnum"])
             elif kind == "kit":
                 self.edit_kit(h, key)
             elif kind == "tile":
@@ -1681,7 +1732,8 @@ class Editor(Popups, Game):
         if not h or not self.role_of(h):
             return
         g = self.game()
-        role, race = self.role_of(h), self.race_of(h)
+        role = D.role_with(self.role_of(h), self.mod(h["role"]))
+        race = self.race_of(h)
         lines = [(_("Options du héros (.nethackrc) :"), curses.A_BOLD)]
         if race:
             lines += [(l, self.cyan()) for l in
@@ -1723,7 +1775,8 @@ class Editor(Popups, Game):
         if not h:
             return
         g = self.game()
-        role, race = self.role_of(h), self.race_of(h)
+        role = D.role_with(self.role_of(h), self.mod(h["role"]))
+        race = self.race_of(h)
         if not role or not race:
             return
         base = P.export_path(os.path.dirname(self.project), h)
@@ -2203,7 +2256,8 @@ def cli_heroes(project, src, config):
 def cli_play(project, src, config, name):
     """--jouer NOM : partie normale avec le héros, sans l'éditeur (comme
     j : options complètes, biographie)."""
-    heroes = P.read_project(project)[0] if os.path.isfile(project) else []
+    heroes, roles = P.read_project(project) if os.path.isfile(project) \
+        else ([], {})
     h = next((x for x in heroes if x["name"] == name), None)
     if not h:
         sys.exit(_("Héros inconnu dans %s : %s") % (project, name))
@@ -2213,6 +2267,7 @@ def cli_play(project, src, config, name):
             if gr == "erreur"]
     if errs:
         sys.exit(_("Héros incomplet : %s") % "; ".join(errs))
+    role = D.role_with(role, roles.get(h["role"]))
     d = G.find_hackdir(config, src)
     if not d:
         sys.exit(_("Jeu introuvable : indiquez son dossier avec "

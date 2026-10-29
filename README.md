@@ -99,6 +99,12 @@ rôle (un champ modifié est marqué ●, `Suppr` rend la valeur du jeu) :
 - attributs : base et poids de chacun (avec la plage obtenue selon la race) ;
 - PV et énergie de départ (fixe + dé), or de départ, intrinsèques
   (rapidité, télépathie, résistances…) ;
+- **animal imposé** (`petnum`) : au choix du joueur (option `pettype`),
+  chaton, petit chien, poney, ou un **robot de
+  [nhmonedit](../NetHack_MonsterEditor)** déjà intégré aux sources (lu
+  dans `include/monsters.h`). L'intégration refuse un animal absent des
+  sources ; le jeu ne donne pas de nom à un robot (`dogname`… ne
+  s'appliquent qu'aux trois animaux du jeu) ;
 - inventaire de départ (`k`) : objets du jeu ou objet au hasard d'une
   classe, quantité (ou intervalle), enchantement ou charges, béni ;
   le Barbare a deux variantes, tirées au hasard par le jeu ;

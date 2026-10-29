@@ -67,6 +67,8 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - Races, sexes et alignements permis.
 - Base et poids des six attributs ; PV et énergie de départ (fixe + dé).
 - Or de départ (remplace celui du jeu) ; 17 intrinsèques de départ.
+- Animal imposé (`petnum`) : au choix du joueur, chaton, petit chien,
+  poney ou robot de nhmonedit intégré aux sources (`include/monsters.h`).
 - Inventaire de départ : objet précis ou au hasard d'une classe,
   quantité ou intervalle, enchantement ou charges, état (au hasard, non
   maudit, béni) ; ajout, retrait, déplacement, retour à l'inventaire du

@@ -16,10 +16,10 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | 1. Limites connues | 6 / 6 | — |
 | 2. Vérification | 0 / 6 | tout |
 | 3. Héros et parties | 7 / 7 | — |
-| 4. Rôles : nouvelles règles | 0 / 9 | tout |
+| 4. Rôles : nouvelles règles | 1 / 9 | 4.1 à 4.3, 4.5 à 4.9 |
 | 5. Tuiles | 4 / 4 | — |
 | 6. Projets et fichiers | 0 / 3 | tout |
-| 7. Liens avec les autres outils | 1 / 3 | 7.2, 7.3 |
+| 7. Liens avec les autres outils | 2 / 3 | 7.3 |
 | 8. Qualité du projet | 0 / 5 | tout |
 
 Prochaine étape conseillée : les **compétences** du rôle (4.1), qui
@@ -157,9 +157,9 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
 3. **Magie du rôle** **[facile]**. Les derniers champs de `roles[]` :
    sort de prédilection, attribut de lancement, pénalités de base, de
    soin, de bouclier et d'armure métallique.
-4. **Animal imposé** **[facile]**. Le champ `petnum` (chaton du
-   Netrunner, chien du Ronin, poney du Lawman), à choisir parmi les
-   animaux possibles.
+4. **Animal imposé** **[facile]** — ✅ **Fait** (avec 7.2). Champ
+   « Animal imposé » du rôle (`petnum`) : au choix du joueur, chaton,
+   petit chien, poney, ou robot de nhmonedit.
 5. **Objets connus au départ** **[moyen]**. Les appels `knows_object()`
    et `knows_class()` de `u_init_role()` : objets identifiés dès le
    début.
@@ -212,8 +212,11 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    ligne « ↳ Jack-in : Kestrel » par héros (`nhheroedit --heros` :
    rôle, race, parties, record, dernière fin, partie en pause), qui
    lance le jeu par `nhheroedit --jouer Kestrel`.
-2. **Robots compagnons** **[moyen]**. Choisir comme animal de départ un
-   robot créé avec nhmonedit (champ `petnum`, voir 4.4).
+2. **Robots compagnons** **[moyen]** — ✅ **Fait**. Les monstres de
+   nhmonedit intégrés à `include/monsters.h` (blocs `nhmonedit`) sont
+   proposés dans « Animal imposé » ; l'intégration écrit leur `PM_…`
+   dans l'entrée du rôle et refuse un monstre absent des sources.
+   Vérifié en jeu : « robot de sécurité apprivoisé » au départ.
 3. **Quête du rôle** **[gros]**. Ouvrir dans l'éditeur de cartes les
    niveaux de quête du rôle (`dat/Val-*.lua`…) pour les adapter au rôle
    modifié.
