@@ -36,6 +36,10 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - Héros au hasard (rôle, combinaison permise selon les rôles modifiés,
   nom, animal, biographie composée) ; générateur de noms de Night City
   (`N`) : pseudos de rue, surnoms, noms corporatistes.
+- Profil d'affichage par héros : interface (`windowtype`, `-w`),
+  symboles (`symset` du jeu), ramassage automatique, couleurs Night City
+  (`hilite_status`, `MENUCOLOR`) ; écrit dans son `.nethackrc` et passé
+  au jeu par `j`.
 - Jeu lancé avec le héros : partie normale, découverte ou wizard ;
   partie sauvegardée du héros (ou de « wizard » en mode wizard) à
   reprendre, mettre de côté dans `parties/`, supprimer, ou remettre ;

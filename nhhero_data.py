@@ -57,6 +57,31 @@ CONDUCTS = [
     ("!bones", _("sans fichiers de bones (niveaux hantés)")),
 ]
 
+# profil d'affichage du héros (options d'interface)
+AUTOPICKUP = [("", _("comme le .nethackrc")),
+              ("off", _("aucun ramassage automatique")),
+              ("gold", _("l'argent seulement")),
+              ("light", _("argent, parchemins, potions, anneaux, amulettes, "
+                          "baguettes, livres"))]
+PICKUP_TYPES = {"gold": "$", "light": '$?!/="+'}
+COLORS = [("", _("comme le .nethackrc")),
+          ("nightcity", _("Night City : PV et énergie en couleur, objets "
+                          "bénis et maudits"))]
+# règles du profil « nightcity » (Guidebook, hilite_status et MENUCOLOR)
+NIGHTCITY_HILITES = [
+    "hitpoints/100%/green&normal", "hitpoints/<100%/lightgreen&normal",
+    "hitpoints/<66%/yellow&normal", "hitpoints/<50%/orange&normal",
+    "hitpoints/<33%/red&bold", "hitpoints/<15%/red&inverse",
+    "power/<33%/magenta&normal", "gold/up/yellow/down/brown",
+    "characteristics/up/green/down/red", "condition/major/orange&inverse",
+]
+NIGHTCITY_MENUCOLORS = [
+    '" blessed "=lightcyan', '" cursed "=red', '" uncursed "=gray',
+    '"\\(being worn\\)"=lightmagenta',
+    '"\\((weapon|wielded)( in .*)?\\)"=lightgreen',
+]
+DISPLAY_KEYS = ("windowtype", "symset", "autopickup", "colors")
+
 # intrinsèques donnés au départ (u_init.c, après les objets)
 INTRINSICS = [
     ("HFast", _("rapidité")),
@@ -647,7 +672,8 @@ def new_hero():
         "name": "", "role": "VALKYRIE", "race": "human",
         "gender": "female", "align": "neutral", "pet": "",
         "petname": "", "fruit": "", "conducts": [], "story": "",
-        "notes": "",
+        "notes": "", "windowtype": "", "symset": "", "autopickup": "",
+        "colors": "",
     }
 
 
@@ -658,6 +684,12 @@ def normalize(h):
             out[k] = v
     out["conducts"] = [c for c in out["conducts"]
                        if c in dict(CONDUCTS)]
+    for k, choices in (("autopickup", AUTOPICKUP), ("colors", COLORS)):
+        if out[k] not in dict(choices):
+            out[k] = ""
+    for k in ("windowtype", "symset"):
+        if not re.match(r"^[A-Za-z0-9_]*$", out[k]):
+            out[k] = ""
     return out
 
 
@@ -725,13 +757,42 @@ def hero_options(h, role, race):
     return opts
 
 
+def display_options(h):
+    """Options du profil d'affichage (sauf windowtype, passée à part :
+    -w sur la ligne de commande, première ligne d'un .nethackrc)."""
+    opts = []
+    if h["symset"]:
+        opts.append("symset:" + h["symset"])
+    if h["autopickup"] == "off":
+        opts.append("!autopickup")
+    elif h["autopickup"]:
+        opts += ["autopickup", "pickup_types:" +
+                 PICKUP_TYPES[h["autopickup"]]]
+    if h["colors"] == "nightcity":
+        opts += ["color", "menucolors", "statushilites:10"] + \
+            ["hilite_status:" + r for r in NIGHTCITY_HILITES]
+    return opts
+
+
+def display_lines(h):
+    """Lignes de configuration du profil qui ne passent pas par
+    NETHACKOPTIONS (règles MENUCOLOR)."""
+    if h["colors"] == "nightcity":
+        return ["MENUCOLOR=" + r for r in NIGHTCITY_MENUCOLORS]
+    return []
+
+
 def nethackrc(h, role, race, names, theme="cyber"):
-    """Fragment de .nethackrc du héros."""
+    """Fragment de .nethackrc du héros (windowtype d'abord, comme le
+    demande le jeu)."""
     lines = ["# %s — %s, %s, %s (nhheroedit)" % (
         h["name"] or "?", names.role(role, h["gender"], theme),
         names.race(race, h["gender"], theme), ALIGN_FR[h["align"]])]
-    for o in hero_options(h, role, race):
+    if h["windowtype"]:
+        lines.append("OPTIONS=windowtype:" + h["windowtype"])
+    for o in hero_options(h, role, race) + display_options(h):
         lines.append("OPTIONS=" + o)
+    lines += display_lines(h)
     return "\n".join(lines) + "\n"
 
 

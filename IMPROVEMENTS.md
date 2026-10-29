@@ -15,7 +15,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 |---|---|---|
 | 1. Limites connues | 6 / 6 | — |
 | 2. Vérification | 0 / 6 | tout |
-| 3. Héros et parties | 4 / 7 | 3.5 à 3.7 |
+| 3. Héros et parties | 5 / 7 | 3.6 et 3.7 |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
 | 5. Tuiles | 0 / 4 | tout |
 | 6. Projets et fichiers | 0 / 3 | tout |
@@ -126,10 +126,13 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    modifiés compris), un nom, un animal et une biographie composée ; `N`
    donne un nom de Night City au hasard (pseudo de rue, surnom, nom
    corporatiste) au héros choisi.
-5. **Profil d'affichage par héros** **[moyen]**. Options d'interface
-   propres au héros : `menucolors`, `statushilites`, `autopickup`,
-   symboles, interface (tty, curses). Écrites dans son `.nethackrc` et
-   passées par `j`.
+5. **Profil d'affichage par héros** **[moyen]** — ✅ **Fait**. Section
+   « ▸ Affichage » de la fiche : interface (interfaces du jeu compilé,
+   `-w` pour `j`), symboles (lus dans le fichier `symbols` du jeu),
+   ramassage automatique, couleurs Night City (`hilite_status`,
+   `menucolors`, `MENUCOLOR`). Écrit dans le `.nethackrc` du héros et
+   passé par `j` (sauf les règles `MENUCOLOR`, que `NETHACKOPTIONS` ne
+   prend pas). Vérifié en jeu.
 6. **Fichier d'options complet** **[facile]**. `x` n'écrit que les
    options du héros ; proposer aussi un fichier complet (le
    `~/.nethackrc` actuel suivi des options du héros), utilisable tel

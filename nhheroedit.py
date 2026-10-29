@@ -424,6 +424,16 @@ class Editor(Popups, Game):
             ("longtext", "story", _("Biographie"), _("l'histoire du héros "
              "(pour vous ; non intégrée au jeu)")),
             ("longtext", "notes", _("Notes"), _("vos notes")),
+            ("section", None, _("Affichage — options d'interface du héros"),
+             ""),
+            ("display", "windowtype", _("Interface"), _("windowtype : "
+             "interfaces du jeu compilé ; vide = celle du .nethackrc")),
+            ("display", "symset", _("Symboles"), _("symset : dessin de la "
+             "carte (DECgraphics, IBMgraphics, curses…)")),
+            ("display", "autopickup", _("Ramassage"), _("autopickup et "
+             "pickup_types")),
+            ("display", "colors", _("Couleurs"), _("couleurs de la ligne "
+             "d'état et des menus (hilite_status, MENUCOLOR)")),
         ]
         if not role:
             return out
@@ -573,6 +583,10 @@ class Editor(Popups, Game):
                                   _("dieu : ") + self.god_text(god),
                                   "" if ok else _("  ✖ interdit")), \
                 0 if ok else red
+        if kind == "display":
+            if not h[key]:
+                return _("comme le .nethackrc"), curses.A_DIM
+            return dict(self.display_choices(key)).get(h[key], h[key]), 0
         if kind == "pet":
             if h["pet"]:
                 return dict(D.PETS)[h["pet"]], 0
@@ -938,12 +952,24 @@ class Editor(Popups, Game):
             return list(D.PETS)
         return []
 
+    def display_choices(self, key):
+        same = ("", _("comme le .nethackrc"))
+        if key == "windowtype":
+            names, _d = G.build_interfaces(self.src)
+            return [same] + [(n, n) for n in
+                             names or [i[0] for i in G.INTERFACES]]
+        if key == "symset":
+            return [same] + [(n, n) for n in G.symsets(self.hackdir())]
+        return list({"autopickup": D.AUTOPICKUP, "colors": D.COLORS}[key])
+
     def adjust(self, delta):
         h = self.hero()
         f = self.fields()[self.field]
         kind, key = f[0], f[1]
-        if kind in ("role", "race", "gender", "align", "pet"):
-            ch = [c for c, _d in self.choices(kind, h)]
+        if kind in ("role", "race", "gender", "align", "pet", "display"):
+            ch = [c for c, _d in (self.display_choices(key)
+                                  if kind == "display"
+                                  else self.choices(kind, h))]
             i = ch.index(h[key]) if h[key] in ch else 0
             self.checkpoint()
             h[key] = ch[(i + delta) % len(ch)]
@@ -977,7 +1003,7 @@ class Editor(Popups, Game):
         elif kind == "conducts" and h[key]:
             self.checkpoint()
             h[key] = []
-        elif kind == "pet" and h[key]:
+        elif kind in ("pet", "display") and h[key]:
             self.checkpoint()
             h[key] = ""
         elif self.is_role_field(f) and self.field_modified(h, f):
@@ -1035,8 +1061,10 @@ class Editor(Popups, Game):
                 if v != h[key]:
                     self.checkpoint()
                     h[key] = v
-            elif kind in ("role", "race", "gender", "align", "pet"):
-                ch = self.choices(kind, h)
+            elif kind in ("role", "race", "gender", "align", "pet",
+                          "display"):
+                ch = self.display_choices(key) if kind == "display" \
+                    else self.choices(kind, h)
                 names = [c for c, _d in ch]
                 i = self.menu(label, [(d, "") for _c, d in ch],
                               names.index(h[key]) if h[key] in names else 0,

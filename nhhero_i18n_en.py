@@ -1157,4 +1157,36 @@ EN = {
         'New name: %s (u to undo)',
     '  N            nom de Night City au hasard pour le héros':
         '  N            random Night City name for the hero',
+    'comme le .nethackrc':
+        'as in .nethackrc',
+    'aucun ramassage automatique':
+        'no automatic pickup',
+    "l'argent seulement":
+        'money only',
+    'argent, parchemins, potions, anneaux, amulettes, baguettes, livres':
+        'money, scrolls, potions, rings, amulets, wands, books',
+    'Night City : PV et énergie en couleur, objets bénis et maudits':
+        'Night City: colored HP and energy, blessed and cursed items',
+    'affichage : %s':
+        'display: %s',
+    '%d règles de couleur':
+        '%d color rules',
+    "Affichage — options d'interface du héros":
+        "Display — the hero's interface options",
+    'Interface':
+        'Interface',
+    'windowtype : interfaces du jeu compilé ; vide = celle du .nethackrc':
+        "windowtype: interfaces of the compiled game; empty = the .nethackrc's",
+    'Symboles':
+        'Symbols',
+    'symset : dessin de la carte (DECgraphics, IBMgraphics, curses…)':
+        'symset: how the map is drawn (DECgraphics, IBMgraphics, curses…)',
+    'Ramassage':
+        'Pickup',
+    'autopickup et pickup_types':
+        'autopickup and pickup_types',
+    'Couleurs':
+        'Colors',
+    "couleurs de la ligne d'état et des menus (hilite_status, MENUCOLOR)":
+        'colors of the status line and menus (hilite_status, MENUCOLOR)',
 }

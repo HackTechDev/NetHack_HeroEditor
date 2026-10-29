@@ -111,8 +111,11 @@ def game_env(hackdir, options):
 def game_command(hackdir, h, role, race, mode=""):
     """Commande shell qui lance le jeu avec le héros. mode : "" (partie
     normale), "-X" (découverte) ou "-D" (wizard)."""
-    env, full = game_env(hackdir, D.hero_options(h, role, race))
+    env, full = game_env(hackdir, D.hero_options(h, role, race) +
+                         D.display_options(h))
     args = ["-u", h["name"]] if mode != "-D" else []
+    if h["windowtype"]:
+        args.insert(0, "-w" + h["windowtype"])
     if not full:
         args += ["-p", role["filecode"], "-r", race["filecode"]]
     if mode:
@@ -122,6 +125,23 @@ def game_command(hackdir, h, role, race, mode=""):
         " ".join("%s=%s" % (k, shlex.quote(v)) for k, v in env.items()),
         shlex.quote(os.path.join(hackdir, "nethack")),
         " ".join(shlex.quote(a) for a in args))
+
+
+FALLBACK_SYMSETS = ["DECgraphics", "IBMgraphics", "curses", "Enhanced1",
+                    "plain"]
+
+
+def symsets(hackdir):
+    """Jeux de symboles du fichier symbols du jeu (sans ceux du niveau
+    de Rogue)."""
+    try:
+        with open(os.path.join(hackdir or "", "symbols"), encoding="utf-8",
+                  errors="replace") as f:
+            names = re.findall(r"^start:\s*(\S+)", f.read(), re.M)
+    except OSError:
+        return FALLBACK_SYMSETS
+    return [n for n in names if not n.startswith("Rogue") and
+            n != "Blank"] or FALLBACK_SYMSETS
 
 
 def save_base(name):
@@ -583,6 +603,13 @@ class Game:
                         "le rôle"),
                       _("et la race sont transmis (ligne de commande)."), ""]
         lines += ["  " + o for o in D.hero_options(h, role, race)]
+        disp = D.display_options(h)
+        if h["windowtype"] or disp:
+            lines += ["  " + _("affichage : %s") % ", ".join(
+                ([h["windowtype"]] if h["windowtype"] else []) +
+                [o for o in disp if not o.startswith("hilite_status")] +
+                ([_("%d règles de couleur") % len(D.NIGHTCITY_HILITES)]
+                 if h["colors"] else []))]
         if tmuxed:
             lines += ["", _("Le jeu s'ouvrira dans tmux, à côté de "
                             "l'éditeur.")]

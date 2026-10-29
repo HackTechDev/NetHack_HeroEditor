@@ -72,6 +72,19 @@ titre anglais l'évite.
 | Conduites | `pauper`, `nudist`, `blind`, `deaf`, `!bones` |
 | Biographie, notes | (pour vous) |
 
+**▸ Affichage** — le profil d'interface du héros, vide = celui de votre
+`.nethackrc` :
+
+| Champ | Option NetHack |
+|---|---|
+| Interface | `windowtype` (interfaces du jeu compilé ; `-w` pour `j`) |
+| Symboles | `symset` (jeux du fichier `symbols` du jeu) |
+| Ramassage | `autopickup`, `pickup_types` (rien, l'argent, ou les objets légers de valeur) |
+| Couleurs | profil Night City : `statushilites`, règles `hilite_status` (PV, énergie, or, attributs, états), `menucolors` et règles `MENUCOLOR` (objets bénis, maudits, portés, en main) |
+
+Les règles `MENUCOLOR` ne passent pas par `NETHACKOPTIONS` : elles sont
+dans le `.nethackrc` écrit par `x`.
+
 Seules les combinaisons permises par le rôle **et** la race sont
 acceptées (✖ sinon) ; changer de rôle ramène race, sexe et alignement à
 une combinaison valide.

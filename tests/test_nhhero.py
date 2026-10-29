@@ -392,6 +392,40 @@ class TestGame(unittest.TestCase):
             self.assertTrue(G.mode_allowed(d, "-X", "Kai")[0])
 
 
+class TestDisplay(unittest.TestCase):
+    def test_display_profile(self):
+        """Profil d'affichage : options, règles MENUCOLOR, windowtype en
+        tête du .nethackrc et en -w sur la ligne de commande."""
+        h = T.from_template(0)
+        self.assertEqual(D.display_options(h), [])
+        h.update(windowtype="curses", symset="DECgraphics",
+                 autopickup="gold", colors="nightcity")
+        opts = D.display_options(h)
+        self.assertEqual(opts[:3], ["symset:DECgraphics", "autopickup",
+                                    "pickup_types:$"])
+        self.assertIn("hilite_status:hitpoints/<33%/red&bold", opts)
+        self.assertFalse(any(" " in o.split("/")[-1] for o in opts
+                             if o.startswith("hilite")))
+        self.assertTrue(D.display_lines(h)[0].startswith("MENUCOLOR="))
+        h["autopickup"] = "off"
+        self.assertIn("!autopickup", D.display_options(h))
+        self.assertEqual(D.normalize(dict(h, colors="x", symset="a b"))[
+            "colors"], "")
+        self.assertEqual(D.normalize(dict(h, symset="a b"))["symset"], "")
+
+    @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
+    def test_display_rc(self):
+        g = I.GameData(SRC)
+        h = T.from_template(0)
+        h.update(windowtype="curses", colors="nightcity")
+        role, race = g.role(h["role"]), g.race(h["race"])
+        rc = D.nethackrc(h, role, race, g.names).splitlines()
+        self.assertEqual(rc[1], "OPTIONS=windowtype:curses")
+        self.assertTrue(rc[-1].startswith("MENUCOLOR="))
+        cmd = G.game_command("/jeu", h, role, race, "-X")
+        self.assertIn("nethack -wcurses -u Kestrel -X", cmd)
+
+
 class TestRandom(unittest.TestCase):
     @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
     def test_random_hero(self):
