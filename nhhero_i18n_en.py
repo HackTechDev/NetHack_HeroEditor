@@ -1241,4 +1241,10 @@ EN = {
         'Write the image to',
     'Image écrite : %s':
         'Image written: %s',
+    'auto, 24bits ou 256 attendu':
+        'auto, 24bits or 256 expected',
+    '  couleurs 24 bits':
+        '  24-bit colors',
+    '  couleurs approchées':
+        '  approximate colors',
 }

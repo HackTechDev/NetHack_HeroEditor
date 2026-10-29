@@ -31,8 +31,45 @@ def _dist(a, b):
     return sum((x - y) ** 2 for x, y in zip(a, b))
 
 
+TERMINFO_DIRS = ["~/.terminfo", "/etc/terminfo", "/lib/terminfo",
+                 "/usr/share/terminfo", "/usr/lib/terminfo"]
+
+
+def has_terminfo(name, env=os.environ):
+    dirs = [env.get("TERMINFO", "")] + env.get("TERMINFO_DIRS", "").split(
+        ":") + TERMINFO_DIRS
+    for d in filter(None, dirs):
+        d = os.path.expanduser(d)
+        for sub in (name[0], "%02x" % ord(name[0])):
+            if os.path.isfile(os.path.join(d, sub, name)):
+                return True
+    return False
+
+
+def direct_term(env=os.environ, want=None, exists=has_terminfo):
+    """TERM en couleurs directes (24 bits) à utiliser pour curses, ou
+    None. want : True (24 bits), False (256 couleurs) ou None (auto :
+    si COLORTERM annonce truecolor ou 24bit)."""
+    term = env.get("TERM", "")
+    if want is False or not term or term.endswith("-direct"):
+        return None
+    if want is None and env.get("COLORTERM", "").lower() not in (
+            "truecolor", "24bit"):
+        return None
+    name = term.split("-")[0] + "-direct"
+    return name if exists(name) else None
+
+
+def truecolor():
+    return curses.COLORS >= 1 << 24
+
+
 def rgb_to_curses(rgb):
-    """Couleur curses la plus proche d'un RGB (256 couleurs si possible)."""
+    """Couleur curses la plus proche d'un RGB (24 bits ou 256 couleurs si
+    possible)."""
+    if truecolor():
+        # en dessous de 8 : les couleurs de base du terminal
+        return max(8, (rgb[0] << 16) | (rgb[1] << 8) | rgb[2])
     if curses.COLORS >= 256:
         steps = [0, 95, 135, 175, 215, 255]
 
@@ -699,7 +736,9 @@ class Popups:
                 self.stdscr.erase()
                 H, W = self.stdscr.getmaxyx()
                 put(self.stdscr, 0, 0, (_(" Tuile : %s  (versions graphiques "
-                                          "Qt et X11) ") % title).ljust(W),
+                                          "Qt et X11) ") % title + (
+                    _("  couleurs 24 bits") if truecolor() else
+                    _("  couleurs approchées"))).ljust(W),
                     self.colors.pair(curses.COLOR_BLACK,
                                      curses.COLOR_MAGENTA) | curses.A_BOLD)
                 oy, ox = 2, 2

@@ -17,7 +17,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | 2. Vérification | 0 / 6 | tout |
 | 3. Héros et parties | 7 / 7 | — |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
-| 5. Tuiles | 3 / 4 | 5.4 |
+| 5. Tuiles | 4 / 4 | — |
 | 6. Projets et fichiers | 0 / 3 | tout |
 | 7. Liens avec les autres outils | 0 / 3 | tout |
 | 8. Qualité du projet | 0 / 5 | tout |
@@ -187,9 +187,11 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
 3. **Export en image** **[facile]** — ✅ **Fait**. `e` dans l'éditeur de
    pixels écrit la tuile agrandie huit fois en PNG (écrit sans
    bibliothèque, `tile_png`) ou en SVG (`tile_svg`).
-4. **Aperçu en couleurs réelles** **[facile]**. Dans un terminal à
-   256 couleurs, l'aperçu en demi-blocs est approché : proposer les
-   couleurs vraies (24 bits) quand le terminal les accepte.
+4. **Aperçu en couleurs réelles** **[facile]** — ✅ **Fait**. Avec
+   `COLORTERM=truecolor` (ou `couleurs = 24bits` dans la
+   configuration), curses démarre avec le terminfo `-direct` du terminal
+   et les tuiles ont leurs couleurs exactes ; le jeu garde son `TERM`.
+   Vérifié dans tmux (`48;2;71;108;108`).
 
 ## 6. Projets et fichiers
 

@@ -73,7 +73,8 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   d'un monstre du jeu, retour à la tuile d'origine ; la tuile de l'autre
   sexe est montrée à côté et peut être recopiée ; calques Night City
   (visière, implants, bras mécanique, manteau long, arme) à placer ;
-  export en PNG ou en SVG agrandi.
+  export en PNG ou en SVG agrandi ; couleurs exactes (24 bits) quand
+  le terminal les accepte.
 - Vérifications : total des poids (100), base (3 à 18, 75 points au
   plus), rôle sans race, sexe ou alignement, objets inconnus ou de la
   mauvaise classe, quantités, enchantements, caractères interdits ;

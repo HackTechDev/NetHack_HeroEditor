@@ -128,6 +128,15 @@ du jeu ; les flèches le déplacent, Entrée le pose (une annulation `u`),
 (net à toute taille), à côté du projet sous le nom
 `<héros>-<sexe>.png` proposé.
 
+Les couleurs de la tuile sont **exactes** (24 bits) quand le terminal
+l'annonce (`COLORTERM=truecolor`, cas de la plupart des terminaux
+récents) : l'éditeur démarre alors curses avec le terminfo `-direct`
+du terminal (`xterm-direct`, `tmux-direct`), le jeu lancé par `j`
+gardant le `TERM` d'origine. Sinon elles sont approchées sur 256
+couleurs ; le titre de l'éditeur de pixels dit lequel. Pour forcer :
+`couleurs = 24bits` ou `256` dans `[editeur]` de la configuration
+(dans tmux, `COLORTERM` n'est souvent pas transmis : mettre `24bits`).
+
 ## Touches
 
 | Touche | Action |

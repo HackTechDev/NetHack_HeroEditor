@@ -423,6 +423,24 @@ class TestTiles(unittest.TestCase):
         self.assertEqual(moved[4], "...........BBBBB")    # le reste sort
         self.assertEqual(D.apply_layer(t, ["A"], -1, 0), t)
 
+    def test_direct_term(self):
+        import nhhero_ui as U
+
+        def yes(name):
+            return name in ("xterm-direct", "tmux-direct")
+        tc = {"TERM": "xterm-256color", "COLORTERM": "truecolor"}
+        self.assertEqual(U.direct_term(tc, None, yes), "xterm-direct")
+        self.assertIsNone(U.direct_term(tc, False, yes))
+        self.assertIsNone(U.direct_term({"TERM": "xterm-256color"},
+                                        None, yes))
+        self.assertEqual(U.direct_term({"TERM": "tmux-256color"}, True,
+                                       yes), "tmux-direct")
+        self.assertIsNone(U.direct_term({"TERM": "screen-256color"}, True,
+                                        yes))
+        self.assertIsNone(U.direct_term({"TERM": "xterm-direct",
+                                         "COLORTERM": "truecolor"},
+                                        None, yes))
+
     def test_images(self):
         import struct
         import zlib
@@ -586,14 +604,15 @@ class TestProject(unittest.TestCase):
     def test_config(self):
         with tempfile.NamedTemporaryFile("w", suffix=".ini",
                                          delete=False) as f:
-            f.write("[editeur]\ntheme = fr\nsouris = non\n[jeu]\n"
-                    "bidule = 1\n")
+            f.write("[editeur]\ntheme = fr\nsouris = non\n"
+                    "couleurs = 24bits\n[jeu]\nbidule = 1\n")
         try:
             cfg, errs = C.load(f.name)
         finally:
             os.remove(f.name)
         self.assertEqual(cfg["theme"], "fr")
         self.assertFalse(cfg["mouse"])
+        self.assertTrue(cfg["truecolor"])
         self.assertEqual(len(errs), 1)
 
     def test_args(self):

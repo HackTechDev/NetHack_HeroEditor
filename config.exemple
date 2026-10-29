@@ -29,3 +29,6 @@ theme = auto
 souris = oui
 ; sauvegarde de secours toutes les N secondes (0 : désactivée)
 sauvegarde = 60
+; couleurs des tuiles : 24bits (vraies couleurs), 256 (approchées) ou
+; auto (24 bits si le terminal le dit, COLORTERM=truecolor)
+couleurs = auto

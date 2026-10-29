@@ -29,6 +29,7 @@ import nhhero_game as G
 from nhhero_game import Game
 import nhhero_project as P
 import nhhero_templates as T
+import nhhero_ui as U
 from nhhero_ui import (Cancel, Colors, ESC, Mouse, Popups, box, centered,
                        enable_mouse, get_key, is_enter, put, wheel)
 
@@ -2189,8 +2190,16 @@ def main(argv=None):
                               else "0")
     import locale
     locale.setlocale(locale.LC_ALL, "")
-    curses.wrapper(lambda scr: Editor(scr, project, src, config,
-                                      errs).run())
+    term = os.environ.get("TERM")
+    direct = U.direct_term(want=config.get("truecolor"))
+    if direct:
+        os.environ["TERM"] = direct
+
+    def run(scr):
+        if direct:
+            os.environ["TERM"] = term   # le jeu et tmux gardent le leur
+        Editor(scr, project, src, config, errs).run()
+    curses.wrapper(run)
 
 
 if __name__ == "__main__":

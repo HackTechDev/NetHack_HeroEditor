@@ -73,6 +73,12 @@ def load(path):
                 bad("editeur", key, _("oui ou non attendu"))
             else:
                 cfg["mouse"] = YES[low]
+        elif key == "couleurs":
+            # vraies couleurs des tuiles (terminfo « -direct »)
+            if low not in ("auto", "24bits", "256"):
+                bad("editeur", key, _("auto, 24bits ou 256 attendu"))
+            elif low != "auto":
+                cfg["truecolor"] = low == "24bits"
         elif key == "sauvegarde":
             try:
                 cfg["autosave"] = max(0, int(low))
