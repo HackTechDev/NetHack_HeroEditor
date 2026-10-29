@@ -38,6 +38,8 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   wizard ; jeu plus ancien que les sources ; mode refusé par `WIZARDS`
   ou `EXPLORERS` de `sysconf` ; `NETHACKOPTIONS` qui désigne un
   fichier).
+- Dans tmux, jeu ouvert dans un panneau à côté de l'éditeur (ou une
+  fenêtre tmux si l'écran est étroit) ; `tmux = non` pour le plein écran.
 - Historique des parties du héros (`xlogfile`) : résumé dans l'aperçu,
   détail par partie avec la fin traduite par les catalogues du jeu,
   mode découverte ou wizard, conduites tenues.

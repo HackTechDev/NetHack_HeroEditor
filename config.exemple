@@ -13,10 +13,13 @@ repertoire = ~/nh/install/games/lib/nethackdir
 ; cœurs>) ; sans WANT_WIN_…, l'éditeur reprend les interfaces du dernier
 ; build (lues dans dat/options), ce qui refait aussi les tuiles X11 et Qt
 make = -j8
+; dans tmux, j ouvre le jeu dans un panneau à côté de l'éditeur (ou une
+; fenêtre tmux si l'écran est étroit) ; non : en plein écran
+tmux = oui
 
 [editeur]
 ; projet ouvert quand aucun n'est donné (défaut : heros.json)
-projet = ~/JEUX/NETHACK/NetHack_HeroesEditor/heros.json
+projet = ~/JEUX/NETHACK/NetHack_HeroEditor/heros.json
 ; langue de l'interface : fr, en ou auto (celle de la locale)
 langue = auto
 ; noms du jeu affichés : cyber (Night City), fr, en (noms internes) ou

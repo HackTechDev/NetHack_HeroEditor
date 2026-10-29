@@ -15,7 +15,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 |---|---|---|
 | 1. Limites connues | 6 / 6 | — |
 | 2. Vérification | 0 / 6 | tout |
-| 3. Héros et parties | 1 / 7 | 3.2 à 3.7 |
+| 3. Héros et parties | 2 / 7 | 3.3 à 3.7 |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
 | 5. Tuiles | 0 / 4 | tout |
 | 6. Projets et fichiers | 0 / 3 | tout |
@@ -111,9 +111,10 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    le nom du héros, avec date, score, niveau, fin traduite par les
    catalogues du jeu, tours, profondeur et conduites tenues. L'aperçu
    montre le nombre de parties et le record.
-2. **Jeu à côté de l'éditeur** **[facile]**. Comme `j` dans nhmonedit,
-   ouvrir NetHack dans un panneau tmux plutôt qu'en plein écran, pour
-   garder la fiche sous les yeux.
+2. **Jeu à côté de l'éditeur** **[facile]** — ✅ **Fait**. Dans tmux,
+   `j` ouvre NetHack dans un panneau à droite (fenêtre d'au moins 170
+   colonnes) ou dans une fenêtre tmux à part ; la fiche reste sous les
+   yeux. `tmux = non` dans la configuration garde le plein écran.
 3. **Partie sauvegardée** **[facile]**. Quand une sauvegarde du héros
    existe, proposer de la reprendre, de la mettre de côté ou de la
    supprimer, au lieu d'un simple avertissement.

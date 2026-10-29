@@ -47,6 +47,12 @@ def load(path):
         elif key == "make":
             # options de make (« -j8 WANT_WIN_ALL=1 ») ; défaut : -jN
             cfg["make"] = val
+        elif key == "tmux":
+            # j dans un panneau tmux à côté de l'éditeur (dans tmux)
+            if val.lower() not in YES:
+                bad("jeu", key, _("oui ou non attendu"))
+            else:
+                cfg["tmux"] = YES[val.lower()]
         else:
             bad("jeu", key, _("clé inconnue"))
     for key, val in (cp.items("editeur") if cp.has_section("editeur")

@@ -129,6 +129,12 @@ vraie) ; rôle, race, sexe, alignement et règles du rôle sont bien ceux
 du héros. `x` écrit les options dans `<nom>.nethackrc`, à recopier dans
 `~/.nethackrc`.
 
+Quand l'éditeur tourne dans **tmux**, le jeu s'ouvre à côté de lui : un
+panneau à droite si la fenêtre a au moins 170 colonnes, sinon une
+fenêtre tmux « nethack-<nom> ». La fiche reste visible, et l'historique
+se met à jour à la fin de la partie. `tmux = non` dans la section
+`[jeu]` de la configuration garde le plein écran.
+
 `h` montre l'**historique des parties** du héros, lu dans le `xlogfile`
 du jeu (parties terminées sous son nom, même compte Unix) : date,
 score, niveau, cause de la fin dans la langue du jeu (« tuée par un

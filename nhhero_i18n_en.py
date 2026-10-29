@@ -1073,4 +1073,14 @@ EN = {
         "  h            history of the hero's games (game's xlogfile)",
     'Parties : %d, record %s (h)':
         'Games: %d, high score %s (h)',
+    'panneau tmux à droite':
+        'tmux pane on the right',
+    'fenêtre tmux « nethack-%s »':
+        'tmux window « nethack-%s »',
+    'Une partie est déjà ouverte (%s).':
+        'A game is already open (%s).',
+    "Le jeu s'ouvrira dans tmux, à côté de l'éditeur.":
+        'The game will open in tmux, next to the editor.',
+    "NetHack lancé (%s) ; l'historique se met à jour à la fin de la partie.":
+        'NetHack started (%s); the history is updated at the end of the game.',
 }

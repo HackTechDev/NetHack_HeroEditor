@@ -1,7 +1,8 @@
 """Jouer avec un héros : NetHack lancé avec les options du héros (nom,
 rôle, race, sexe, alignement, animal, fruit, conduites), en partie
-normale, en mode découverte ou en mode wizard ; historique de ses
-parties (xlogfile du jeu).
+normale, en mode découverte ou en mode wizard, dans un panneau tmux à
+côté de l'éditeur quand c'est possible ; historique de ses parties
+(xlogfile du jeu).
 
 Mixin de l'éditeur : self.config, self.src, self.hero(), self.game(),
 self.msg, self.menu(), self.confirm(), self.message_box() et
@@ -13,6 +14,8 @@ import os
 import pwd
 import re
 import shlex
+import shutil
+import subprocess
 
 import curses
 
@@ -74,6 +77,16 @@ def make_command(src, target="", opts=""):
     if "WANT_" not in opts:
         opts = " ".join([opts] + make_flags(src))
     return " ".join(x for x in ("make", target, opts.strip()) if x)
+
+
+def tmux(*args):
+    """Commande tmux ; sa sortie, ou None en cas d'échec."""
+    try:
+        r = subprocess.run(["tmux"] + list(args), capture_output=True,
+                           text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout.strip() if r.returncode == 0 else None
 
 
 def game_env(hackdir, options):
@@ -280,6 +293,44 @@ def death_text(rec, names, theme="cyber"):
 
 
 class Game:
+    game_pane = None
+    game_where = ""
+
+    def use_tmux(self):
+        """Lancer le jeu dans tmux ? (l'éditeur tourne dans tmux, et la
+        configuration ne dit pas non)"""
+        return bool(os.environ.get("TMUX")) and bool(shutil.which("tmux")) \
+            and self.config.get("tmux", True)
+
+    def game_alive(self):
+        """Le panneau du jeu existe-t-il encore ? (il se ferme avec le
+        jeu)"""
+        if not self.game_pane:
+            return False
+        if tmux("display-message", "-p", "-t", self.game_pane,
+                "#{pane_id}") is None:
+            self.game_pane = None
+        return bool(self.game_pane)
+
+    def start_in_tmux(self, cmd, name):
+        """Lance cmd dans un panneau tmux à droite de l'éditeur (fenêtre
+        assez large), sinon dans une fenêtre tmux à part ; le jeu prend la
+        main. Renvoie le lieu (texte), ou None en cas d'échec."""
+        here = os.environ.get("TMUX_PANE", "")
+        width = int(tmux("display-message", "-p", "-t", here,
+                         "#{window_width}") or 0)
+        if width >= 170:
+            pane = tmux("split-window", "-h", "-l", "82", "-t", here, "-P",
+                        "-F", "#{pane_id}", cmd)
+            where = _("panneau tmux à droite")
+        else:
+            pane = tmux("new-window", "-n", "nethack-" + name[:12], "-P",
+                        "-F", "#{pane_id}", cmd)
+            where = _("fenêtre tmux « nethack-%s »") % name[:12]
+        if not pane:
+            return None
+        self.game_pane, self.game_where = pane, where
+        return where
     def hackdir(self):
         """Dossier du jeu installé : NHHEROEDIT_HACKDIR, configuration,
         ~/nh/install/…, puis playground des sources."""
@@ -419,9 +470,23 @@ class Game:
                         "le rôle"),
                       _("et la race sont transmis (ligne de commande)."), ""]
         lines += ["  " + o for o in D.hero_options(h, role, race)]
+        tmuxed = self.use_tmux()
+        if tmuxed and self.game_alive():
+            self.msg = _("Une partie est déjà ouverte (%s).") % \
+                self.game_where
+            return
+        if tmuxed:
+            lines += ["", _("Le jeu s'ouvrira dans tmux, à côté de "
+                            "l'éditeur.")]
         lines += ["", _("Lancer NetHack maintenant ?")]
         if not self.confirm("\n".join(lines), _("Jouer")):
             return
-        rc = self.run_external(_("NetHack — %s") % h["name"],
-                               game_command(d, h, role, race, mode), d)
+        cmd = game_command(d, h, role, race, mode)
+        if tmuxed:
+            where = self.start_in_tmux(cmd, h["name"])
+            if where:
+                self.msg = _("NetHack lancé (%s) ; l'historique se met à "
+                             "jour à la fin de la partie.") % where
+                return
+        rc = self.run_external(_("NetHack — %s") % h["name"], cmd, d)
         self.msg = _("Retour de NetHack (code %d)") % rc
