@@ -241,6 +241,33 @@ class TestInstall(unittest.TestCase):
         cy = D.parse_po(files[I.PO_CYBER])
         self.assertEqual(cy[("feminine", "Shieldmaiden")], "Lame")
 
+    def test_rank_conflicts(self):
+        """Un titre anglais déjà employé par un autre rôle est signalé
+        quand sa traduction change ; un titre neuf ne l'est pas."""
+        self.assertEqual(I.rank_conflicts(self.g, self.mods), {})
+        val = self.g.role("VALKYRIE")
+        tab = D.ranks_table(val, self.g.names)
+        en = [r[:2] for r in tab]
+        en[0] = ["Rambler", ""]                 # titre du Touriste
+        res = I.rank_conflicts(self.g, {"VALKYRIE": {"ranks_en": en}},
+                               "en")
+        self.assertEqual(len(res["VALKYRIE"]), 1)
+        self.assertIn("Tourist", res["VALKYRIE"][0])
+        # même titre, même traduction : rien à signaler
+        fr = [r[2:4] for r in tab]
+        cy = [r[4:6] for r in tab]
+        tou = D.ranks_table(self.g.role("TOURIST"), self.g.names)
+        fr[0], cy[0] = tou[0][2:4], tou[0][4:6]
+        self.assertEqual(I.rank_conflicts(self.g, {"VALKYRIE": {
+            "ranks_en": en, "ranks_fr": fr, "ranks_cyber": cy}}), {})
+        # deux rôles du projet, deux traductions du même titre
+        mods = {"VALKYRIE": {"ranks_en": en}, "TOURIST": {
+            "ranks_fr": [["Flâneur", "Flâneuse"]] + [r[2:4]
+                                                     for r in tou[1:]]}}
+        res = I.rank_conflicts(self.g, mods)
+        self.assertTrue(any("une seule traduction" in m
+                            for m in res["VALKYRIE"]))
+
     @unittest.skipUnless(shutil.which("msgfmt"), "msgfmt absent")
     def test_po_compile(self):
         files = I.plan(self.src, self.mods, self.g)

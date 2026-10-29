@@ -164,6 +164,15 @@ class GameData:
                 po[rel] = {}
         self.names = D.Names(po[PO_FR], po[PO_CYBER])
         try:
+            self.po_refs = D.parse_po_refs(clean_text(src, POT))
+        except OSError:
+            self.po_refs = {}
+        # lignes de l'entrée de chaque rôle (pour les références des .po)
+        self.role_lines = {
+            D.role_key(r): (role_c.count("\n", 0, r["start"]) + 1,
+                            role_c.count("\n", 0, r["end"]) + 1)
+            for r in self.roles}
+        try:
             self.tiles_text = clean_text(src, TILES)
         except OSError:
             self.tiles_text = ""
@@ -504,6 +513,59 @@ def rank_plan(game, mods):
                 if msgid:
                     out.append((ctx, msgid, fr[i][j], cy[i][j]))
     return out
+
+
+def rank_uses(game, key, msgid, theme="cyber"):
+    """Où le jeu emploie déjà msgid, hors de l'entrée du rôle key : noms
+    des autres rôles et fichiers (d'après nethack.pot)."""
+    out = []
+    for ref in game.po_refs.get((None, msgid), []):
+        rel, _s, line = ref.rpartition(":")
+        where = rel
+        if rel == ROLE_C and line.isdigit():
+            for k, (l1, l2) in game.role_lines.items():
+                if l1 <= int(line) <= l2:
+                    where = None if k == key else \
+                        game.names.role(game.role(k), "male", theme)
+                    break
+        if where and where not in out:
+            out.append(where)
+    return out
+
+
+def rank_conflicts(game, mods, theme="cyber"):
+    """{rôle: [avertissements]} : titres anglais qui servent déjà ailleurs
+    dans le jeu (changer leur traduction la change partout), ou que deux
+    rôles du projet traduisent différemment."""
+    out = {}
+    seen = {}
+    mods = active_mods(mods)
+    for key in sorted(mods):
+        if not game.role(key):
+            continue
+        told = set()
+        for ctx, msgid, fr, cy in rank_plan(game, {key: mods[key]}):
+            msgs = out.setdefault(key, [])
+            prev = seen.setdefault((ctx, msgid), (key, fr, cy))
+            if prev[0] != key and prev[1:] != (fr, cy) and msgid not in told:
+                told.add(msgid)
+                msgs.append(_("titre « %s » : traduit autrement pour le "
+                              "rôle %s (une seule traduction possible)")
+                            % (msgid, game.names.role(game.role(prev[0]),
+                                                      "male", theme)))
+            names = game.names
+            changed = (fr.strip() and fr != names.get(msgid, ctx, "fr")) or \
+                (cy.strip() and cy != names.get(msgid, ctx, "cyber"))
+            if not changed or msgid in told:
+                continue
+            uses = rank_uses(game, key, msgid, theme)
+            if uses:
+                told.add(msgid)
+                msgs.append(_("titre « %s » : le jeu l'emploie déjà (%s) ; "
+                              "sa traduction y changera aussi — un autre "
+                              "titre anglais l'évite")
+                            % (msgid, ", ".join(uses[:4])))
+    return {k: v for k, v in out.items() if v}
 
 
 def insert_po(text, plan, kind, fr_names=None):

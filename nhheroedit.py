@@ -331,7 +331,16 @@ class Editor(Popups, Game):
         g = self.game()
         return D.validate(h, self.role_of(h), self.race_of(h),
                           self.mod(h["role"]), g.objects,
-                          [o for o in self.heroes if o is not h])
+                          [o for o in self.heroes if o is not h]) + \
+            self.rank_problems(h["role"])
+
+    def rank_problems(self, key):
+        """Avertissements sur les titres de rang du rôle key."""
+        try:
+            res = I.rank_conflicts(self.game(), self.roles, self.theme)
+        except (OSError, ValueError):
+            return []
+        return [("attention", m) for m in res.get(key, [])]
 
     # --- champs ------------------------------------------------------------
 
@@ -1090,6 +1099,9 @@ class Editor(Popups, Game):
             tab[i][j] = v
             self.set_mod(h["role"], which, tab,
                          self.rank_defaults(role)[which])
+            warn = self.rank_problems(h["role"])
+            if warn:
+                self.msg = "⚠ " + warn[0][1]
 
     # --- inventaire ----------------------------------------------------------
 
@@ -1531,7 +1543,7 @@ class Editor(Popups, Game):
             role = g.role(k)
             if role and not any(h["role"] == k for h in self.heroes):
                 res = D.role_problems(role, g.races[0], self.roles[k],
-                                      g.objects)
+                                      g.objects) + self.rank_problems(k)
                 lines.append((_("Rôle %s (sans héros)") % role["name"][0],
                               curses.A_BOLD))
                 lines += [("  %s %s" % ("✖" if gr == "erreur" else "⚠", m),

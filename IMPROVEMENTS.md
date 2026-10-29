@@ -13,7 +13,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 
 | Thème | Fait | Reste |
 |---|---|---|
-| 1. Limites connues | 1 / 6 | 1.2 à 1.6 |
+| 1. Limites connues | 2 / 6 | 1.3 à 1.6 |
 | 2. Vérification | 0 / 6 | tout |
 | 3. Héros et parties | 0 / 7 | tout |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
@@ -38,11 +38,14 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    `gendered_word()`. L'intégration corrige ces deux appels de
    `src/insight.c` (marqués `nhheroedit`, retirés par `R`) dès que des
    titres de rang changent. Vérifié en jeu : « Vous êtes Gamine ».
-2. **Titres anglais déjà employés ailleurs** **[facile]**. Un titre
-   anglais tapé à la main (« Novice », « Hero ») peut être un `msgid`
-   que le jeu utilise déjà pour un autre texte : changer sa traduction
-   dans `fr.po` change aussi cet autre texte. Le signaler, et proposer
-   un titre anglais propre au rôle.
+2. **Titres anglais déjà employés ailleurs** **[facile]** — ✅ **Fait**.
+   Un titre anglais tapé à la main (« Novice », « Rambler ») peut être
+   un `msgid` que le jeu utilise déjà : changer sa traduction dans
+   `fr.po` change aussi l'autre texte. L'éditeur cherche les emplois du
+   titre dans les références de `nethack.pot` (hors de l'entrée du rôle)
+   et avertit dans l'aperçu, la vérification `v` et à la saisie ; il
+   signale aussi un même titre traduit différemment par deux rôles du
+   projet.
 3. **Tuiles des versions graphiques non régénérées** **[facile]**. `m`
    lance un simple `make`, qui ne refait pas toujours `x11tiles` et
    `nhtiles.bmp`. Détecter les interfaces du jeu installé et prévenir,

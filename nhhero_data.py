@@ -478,6 +478,23 @@ def parse_po(text):
     return out
 
 
+def parse_po_refs(text):
+    """{(contexte ou None, msgid): [références « fichier:ligne »]} d'après
+    les commentaires « #: » (de nethack.pot)."""
+    out = {}
+    for block in re.split(r"\n\s*\n", text):
+        refs = []
+        for line in block.split("\n"):
+            if line.startswith("#: "):
+                refs += line[3:].split()
+        if not refs:
+            continue
+        key = parse_po(block)
+        for k in key:
+            out[k] = refs
+    return out
+
+
 class Names:
     """Noms traduits selon le thème : cyber (fr@cyber.po, puis fr.po),
     fr (fr.po) ou en (le texte anglais)."""

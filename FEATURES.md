@@ -55,7 +55,10 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   d'un monstre du jeu, retour à la tuile d'origine.
 - Vérifications : total des poids (100), base (3 à 18, 75 points au
   plus), rôle sans race, sexe ou alignement, objets inconnus ou de la
-  mauvaise classe, quantités, enchantements, caractères interdits.
+  mauvaise classe, quantités, enchantements, caractères interdits ;
+  titre anglais déjà employé ailleurs dans le jeu (d'après les
+  références de `nethack.pot`) dont la traduction changerait, ou
+  traduit différemment par deux rôles du projet.
 
 ## Intégration
 

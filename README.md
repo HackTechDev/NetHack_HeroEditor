@@ -48,7 +48,11 @@ Traqueuse de primes, Technoprêtre, Moniale augmentée, Zonard des
 décharges), avec une combinaison permise et une biographie.
 
 Les titres de rang se règlent séparément en anglais (nom interne),
-en français et en Night City, au masculin et au féminin.
+en français et en Night City, au masculin et au féminin. Le titre
+anglais sert de clé aux traductions : s'il est déjà employé ailleurs
+dans le jeu (« Rambler » est un rang du Touriste), changer sa
+traduction la change aussi là-bas ; l'éditeur le signale et un autre
+titre anglais l'évite.
 
 ## La fiche
 
