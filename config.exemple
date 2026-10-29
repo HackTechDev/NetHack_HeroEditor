@@ -1,0 +1,27 @@
+; Configuration de nhheroedit : à copier dans ~/.config/nhheroedit/config
+; (ou dans le fichier indiqué par NHHEROEDIT_CONFIG).
+; Toutes les clés sont facultatives. La ligne de commande et les
+; variables d'environnement (NHHEROEDIT_SRC, NHHEROEDIT_HACKDIR,
+; NHHEROEDIT_LANG, NHHEROEDIT_MOUSE) passent avant ce fichier.
+
+[jeu]
+; sources de NetHack (défaut : ../NetHack-5.0.0 à côté de l'éditeur)
+sources = ~/JEUX/NETHACK/NetHack-5.0.0
+; jeu installé (défaut : ~/nh/install/games/lib/nethackdir)
+repertoire = ~/nh/install/games/lib/nethackdir
+; options de « make » pour la touche m (défaut : -j<nombre de cœurs>) ;
+; WANT_WIN_ALL=1 refait aussi les tuiles des versions Qt et X11
+make = -j8 WANT_WIN_ALL=1
+
+[editeur]
+; projet ouvert quand aucun n'est donné (défaut : heros.json)
+projet = ~/JEUX/NETHACK/NetHack_HeroesEditor/heros.json
+; langue de l'interface : fr, en ou auto (celle de la locale)
+langue = auto
+; noms du jeu affichés : cyber (Night City), fr, en (noms internes) ou
+; auto (d'après l'option language du ~/.nethackrc)
+theme = auto
+; souris : oui ou non
+souris = oui
+; sauvegarde de secours toutes les N secondes (0 : désactivée)
+sauvegarde = 60
