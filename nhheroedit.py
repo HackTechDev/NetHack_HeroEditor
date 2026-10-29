@@ -72,6 +72,7 @@ HELP = [
     _("Héros :"),
     _("  n            nouveau héros d'après un archétype de Night City"),
     _("  d            dupliquer le héros"),
+    _("  N            nom de Night City au hasard pour le héros"),
     _("  Suppr / X    supprimer le héros (dans la liste)"),
     _("  < >          déplacer le héros dans la liste"),
     _("  /            aller à un héros (tapez une partie de son nom)"),
@@ -1389,16 +1390,43 @@ class Editor(Popups, Game):
         items = T.template_list()
         try:
             i = self.menu(_("Nouveau héros : archétype"), items)
-            h = T.from_template(i)
+            if i == T.RANDOM:
+                g = self.game()
+                h = T.random_hero(g.roles, g.races, lambda r: D.effective(
+                    r, self.mod(D.role_key(r)))["allow"])
+                if not h:
+                    self.msg = _("Aucun rôle n'a de combinaison permise")
+                    return
+                h = self.unique_name(h)
+            else:
+                h = T.from_template(i)
             name = self.input_line(_("Nom du héros"), h["name"],
                                    _("sans - , : = / (31 caractères au "
                                      "plus)"))
         except Cancel:
             return
-        h["name"] = name.strip() or h["name"]
+        old, h["name"] = h["name"], name.strip() or h["name"]
+        if old and i == T.RANDOM and h["story"].startswith(old + " "):
+            h["story"] = h["name"] + h["story"][len(old):]
         self.add_hero(self.unique_name(h))
         self.fix_combo(h)
         self.msg = _("Héros créé : %s") % h["name"]
+
+    def random_name(self):
+        """N : nom de Night City au hasard pour le héros choisi."""
+        h = self.hero()
+        if not h:
+            return
+        names = {o["name"] for o in self.heroes if o is not h}
+        for _i in range(50):
+            name = T.random_name(gender=h["gender"])
+            if name not in names:
+                break
+        self.checkpoint()
+        old, h["name"] = h["name"], name
+        if h["story"].startswith(old + " ") and old:
+            h["story"] = name + h["story"][len(old):]
+        self.msg = _("Nouveau nom : %s (u pour annuler)") % name
 
     def duplicate(self):
         h = self.hero()
@@ -1995,6 +2023,7 @@ class Editor(Popups, Game):
             "\x12": lambda: self.undo(redo=True),
             "\x19": lambda: self.undo(redo=True),
             "n": self.new_hero, "d": self.duplicate, "/": self.goto_hero,
+            "N": self.random_name,
             "k": self.kit_key, "t": lambda: self.hero() and self.edit_tile(),
             "T": self.cycle_theme, "p": self.project_menu,
             "v": self.show_validation, "c": self.show_code,

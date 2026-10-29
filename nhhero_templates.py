@@ -1,8 +1,9 @@
 """Modèles de héros : un archétype de Night City par rôle du jeu, avec
 une combinaison permise de race, de sexe et d'alignement, et une courte
-biographie."""
+biographie ; héros et noms de Night City tirés au hasard."""
 
 import copy
+import random
 
 import nhhero_data as D
 from nhhero_i18n import _
@@ -64,14 +65,109 @@ TEMPLATES = [
 ]
 
 
+# --- noms de Night City ----------------------------------------------------
+
+# pseudos de rue (un mot, ASCII : le nom sert aussi au fichier de
+# sauvegarde)
+HANDLES = [
+    "Razor", "Neon", "Static", "Chrome", "Vex", "Glitch", "Ghost", "Zero",
+    "Spike", "Jinx", "Nova", "Rook", "Echo", "Wraith", "Cipher", "Dagger",
+    "Flux", "Haze", "Kilo", "Lynx", "Mako", "Nyx", "Onyx", "Pulse", "Quill",
+    "Rust", "Sable", "Torque", "Vandal", "Wire", "Yuri", "Zed", "Blitz",
+    "Cobalt", "Drift", "Ember", "Fuse", "Grit", "Hex", "Ion", "Jolt",
+    "Krypt", "Lazer", "Moth", "Nitro", "Proxy", "Rivet", "Shiv", "Tank",
+]
+PREFIXES = ["Doc", "Mama", "Papa", "Big", "Little", "Lady", "Mister",
+            "Kid", "Old"]
+FIRST_NAMES = {
+    "male": ["Viktor", "Kenji", "Marcus", "Dmitri", "Rafael", "Jun",
+             "Tomas", "Andre", "Kofi", "Ivan", "Hiro", "Mateo", "Elias",
+             "Omar", "Lars", "Diego"],
+    "female": ["Mika", "Yara", "Lena", "Sasha", "Ines", "Rei", "Nadia",
+               "Zoe", "Ayumi", "Elena", "Kira", "Lucia", "Maya", "Oksana",
+               "Tamsin", "Wren"],
+}
+LAST_NAMES = ["Tanaka", "Sato", "Kowalski", "Okafor", "Reyes", "Volkov",
+              "Nakamura", "Silva", "Novak", "Moreau", "Chen", "Ivanova",
+              "Kaur", "Haddad", "Lindqvist", "Arasaka", "Militech", "Kang"]
+PET_NAMES = ["Bitmap", "Pixel", "Byte", "Turbo", "Kernel", "Ping", "Sprocket",
+             "Diode", "Patch", "Widget", "Gizmo", "Bolt"]
+# biographie : « <nom> <origine> et <but>. »
+ORIGINS = [
+    _("a grandi dans les Bas-fonds"),
+    _("a fui un labo d'Arasaka"),
+    _("a quitté sa corpo après un contrat raté"),
+    _("vient des clans nomades des Badlands"),
+    _("a appris à survivre dans les décharges de la zone"),
+    _("a tout perdu dans le Grand Krach"),
+    _("a vendu ses souvenirs pour payer ses implants"),
+    _("a quitté sa cuve de clonage sans papiers"),
+]
+GOALS = [
+    _("cherche l'Amulette pour racheter sa dette"),
+    _("veut effacer son nom des fichiers corporatistes"),
+    _("rêve d'un aller simple hors de Night City"),
+    _("vend ses services au plus offrant"),
+    _("traque celui qui l'a trahi"),
+    _("ne fait confiance qu'à ses implants"),
+    _("collectionne les puces des netrunners tombés"),
+    _("doit encore trois faveurs à un fixer"),
+]
+
+
+def random_name(rng=random, gender=None):
+    """Nom de Night City : pseudo de rue, pseudo avec surnom ou numéro,
+    ou nom corporatiste (prénom selon le sexe)."""
+    gender = gender or rng.choice(("male", "female"))
+    style = rng.random()
+    if style < 0.4:
+        return rng.choice(HANDLES)
+    if style < 0.55:
+        return "%s %s" % (rng.choice(PREFIXES), rng.choice(HANDLES))
+    if style < 0.7:
+        return "%s%d" % (rng.choice(HANDLES), rng.randint(2, 99))
+    return "%s %s" % (rng.choice(FIRST_NAMES[gender]),
+                      rng.choice(LAST_NAMES))
+
+
+def random_story(name, rng=random):
+    return _("%s %s et %s.") % (name, rng.choice(ORIGINS),
+                                rng.choice(GOALS))
+
+
+def random_hero(roles, races, allow_of, rng=random):
+    """Héros au hasard : rôle, combinaison permise (allow_of(rôle) donne
+    les drapeaux permis, modifications du projet comprises), nom, animal
+    et biographie. None si aucun rôle n'a de combinaison permise."""
+    choices = [(r, c) for r in roles
+               for c in D.combos(allow_of(r), races)]
+    if not choices:
+        return None
+    role, (race, gender, align) = rng.choice(choices)
+    h = D.new_hero()
+    h.update({"role": D.role_key(role), "race": race, "gender": gender,
+              "align": align, "name": random_name(rng, gender)})
+    if role["petnum"] == "NON_PM":
+        h["pet"] = rng.choice(("", "", "cat", "dog"))
+        if h["pet"]:
+            h["petname"] = rng.choice(PET_NAMES)
+    h["story"] = random_story(h["name"], rng)
+    return h
+
+
 def template_list():
     """[(titre, description)] pour le menu « n »."""
     return [(t[8], t[4]) for t in TEMPLATES] + \
-        [(_("Héros vierge"), _("à régler soi-même"))]
+        [(_("Héros au hasard"), _("rôle, combinaison, nom et biographie "
+                                  "de Night City")),
+         (_("Héros vierge"), _("à régler soi-même"))]
+
+
+RANDOM = len(TEMPLATES)        # indice de « Héros au hasard »
 
 
 def from_template(i):
-    """Héros du modèle i (le dernier : héros vierge)."""
+    """Héros du modèle i (après les modèles : héros vierge)."""
     h = D.new_hero()
     if i >= len(TEMPLATES):
         return h

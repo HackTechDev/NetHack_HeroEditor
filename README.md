@@ -47,6 +47,11 @@ Fixer, Lawman, Nomade des Badlands, Ronin urbain, Influenceuse,
 Traqueuse de primes, Technoprêtre, Moniale augmentée, Zonard des
 décharges), avec une combinaison permise et une biographie.
 
+« Héros au hasard » (dans le menu de `n`) tire un rôle, une
+combinaison permise (avec les rôles modifiés du projet), un nom de
+Night City (pseudo de rue, surnom, nom corporatiste), un animal et une
+biographie ; `N` donne un nouveau nom au hasard au héros choisi.
+
 Les titres de rang se règlent séparément en anglais (nom interne),
 en français et en Night City, au masculin et au féminin. Le titre
 anglais sert de clé aux traductions : s'il est déjà employé ailleurs

@@ -392,6 +392,30 @@ class TestGame(unittest.TestCase):
             self.assertTrue(G.mode_allowed(d, "-X", "Kai")[0])
 
 
+class TestRandom(unittest.TestCase):
+    @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
+    def test_random_hero(self):
+        """Héros au hasard : combinaison permise, nom accepté par le jeu,
+        rôles sans combinaison écartés."""
+        import random
+        g = I.GameData(SRC)
+        rng = random.Random(5)
+        for _i in range(200):
+            h = T.random_hero(g.roles, g.races, lambda r: r["allow"], rng)
+            role, race = g.role(h["role"]), g.race(h["race"])
+            self.assertTrue(D.allowed(role["allow"], race, h["gender"],
+                                      h["align"]), h)
+            self.assertTrue(D.valid_name(h["name"]), h["name"])
+            self.assertTrue(h["story"].startswith(h["name"] + " "))
+            self.assertEqual([gr for gr, _m in D.validate(
+                h, role, race, {}, g.objects) if gr == "erreur"], [])
+        only = [g.role("SAMURAI")]
+        self.assertEqual(T.random_hero(only, g.races,
+                                       lambda r: r["allow"], rng)["role"],
+                         "SAMURAI")
+        self.assertIsNone(T.random_hero(only, g.races, lambda r: set()))
+
+
 class TestHistory(unittest.TestCase):
     XLOG = ("version=5.0.0\tpoints=120\tdeathlev=3\tmaxlvl=4\tuid=%(uid)d"
             "\tname=Kestrel\tgender=Fem\tdeath=killed by a jackal\t"

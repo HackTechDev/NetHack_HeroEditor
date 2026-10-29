@@ -15,7 +15,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 |---|---|---|
 | 1. Limites connues | 6 / 6 | — |
 | 2. Vérification | 0 / 6 | tout |
-| 3. Héros et parties | 3 / 7 | 3.4 à 3.7 |
+| 3. Héros et parties | 4 / 7 | 3.5 à 3.7 |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
 | 5. Tuiles | 0 / 4 | tout |
 | 6. Projets et fichiers | 0 / 3 | tout |
@@ -121,9 +121,11 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    sauvegarde, il propose de remettre une partie mise de côté. La
    sauvegarde est cherchée sous son nom exact (`Kestrel` ne prend plus
    celle de `Kestrel2`).
-4. **Héros au hasard** **[facile]**. Tirer une combinaison permise, un
-   nom et un animal ; avec un générateur de noms de Night City
-   (pseudos de rue, noms corporatistes) aussi utile pour `n`.
+4. **Héros au hasard** **[facile]** — ✅ **Fait**. « Héros au hasard »
+   dans le menu de `n` tire un rôle, une combinaison permise (rôles
+   modifiés compris), un nom, un animal et une biographie composée ; `N`
+   donne un nom de Night City au hasard (pseudo de rue, surnom, nom
+   corporatiste) au héros choisi.
 5. **Profil d'affichage par héros** **[moyen]**. Options d'interface
    propres au héros : `menucolors`, `statushilites`, `autopickup`,
    symboles, interface (tty, curses). Écrites dans son `.nethackrc` et

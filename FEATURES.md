@@ -33,6 +33,9 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   PV et énergie de départ, animal imposé par le rôle.
 - 13 archétypes de Night City (un par rôle) avec biographie ; noms
   uniques dans le projet.
+- Héros au hasard (rôle, combinaison permise selon les rôles modifiés,
+  nom, animal, biographie composée) ; générateur de noms de Night City
+  (`N`) : pseudos de rue, surnoms, noms corporatistes.
 - Jeu lancé avec le héros : partie normale, découverte ou wizard ;
   partie sauvegardée du héros (ou de « wizard » en mode wizard) à
   reprendre, mettre de côté dans `parties/`, supprimer, ou remettre ;

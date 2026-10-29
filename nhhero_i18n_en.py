@@ -1113,4 +1113,48 @@ EN = {
         'Cannot put the game back',
     'Une sauvegarde occupe déjà sa place dans save/.':
         'A saved game already takes its place in save/.',
+    'a grandi dans les Bas-fonds':
+        'grew up in the Bas-fonds',
+    "a fui un labo d'Arasaka":
+        'fled an Arasaka lab',
+    'a quitté sa corpo après un contrat raté':
+        'left their corpo after a botched contract',
+    'vient des clans nomades des Badlands':
+        'comes from the nomad clans of the Badlands',
+    'a appris à survivre dans les décharges de la zone':
+        'learned to survive in the dumps of the zone',
+    'a tout perdu dans le Grand Krach':
+        'lost everything in the Great Crash',
+    'a vendu ses souvenirs pour payer ses implants':
+        'sold their memories to pay for their implants',
+    'a quitté sa cuve de clonage sans papiers':
+        'left their cloning vat without papers',
+    "cherche l'Amulette pour racheter sa dette":
+        'seeks the Amulet to pay off their debt',
+    'veut effacer son nom des fichiers corporatistes':
+        'wants to erase their name from the corporate files',
+    "rêve d'un aller simple hors de Night City":
+        'dreams of a one-way ticket out of Night City',
+    'vend ses services au plus offrant':
+        'sells their services to the highest bidder',
+    "traque celui qui l'a trahi":
+        'hunts down the one who betrayed them',
+    "ne fait confiance qu'à ses implants":
+        'trusts nothing but their implants',
+    'collectionne les puces des netrunners tombés':
+        'collects the chips of fallen netrunners',
+    'doit encore trois faveurs à un fixer':
+        'still owes a fixer three favors',
+    '%s %s et %s.':
+        '%s %s and %s.',
+    'Héros au hasard':
+        'Random hero',
+    'rôle, combinaison, nom et biographie de Night City':
+        'Night City role, combination, name and biography',
+    "Aucun rôle n'a de combinaison permise":
+        'No role has an allowed combination',
+    'Nouveau nom : %s (u pour annuler)':
+        'New name: %s (u to undo)',
+    '  N            nom de Night City au hasard pour le héros':
+        '  N            random Night City name for the hero',
 }
