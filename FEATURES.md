@@ -73,7 +73,11 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - Copie des fichiers dans `sauvegardes/<date>/` avant chaque écriture,
   rétablissement d'une sauvegarde, commit git proposé.
 - État du rôle dans l'aperçu : d'origine, modifié non intégré, intégré,
-  intégré puis modifié, modifié dans les sources par un autre projet.
+  intégré puis modifié, intégré par un autre projet (nommé).
+- Plusieurs projets dans les mêmes sources : le projet de chaque rôle
+  intégré est noté dans `role.c` ; `I` garde (ou retire, au choix) les
+  rôles des autres projets, relus dans leur fichier, et `R` peut ne
+  retirer que ceux du projet ouvert.
 - Compilation (`make`) et mise à jour du jeu installé (`make update`)
   avec les interfaces du dernier build (lues dans `dat/options`) :
   curses, X11 et Qt restent, les tuiles X11 et Qt sont refaites ;

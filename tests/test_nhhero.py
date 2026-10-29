@@ -241,6 +241,26 @@ class TestInstall(unittest.TestCase):
         cy = D.parse_po(files[I.PO_CYBER])
         self.assertEqual(cy[("feminine", "Shieldmaiden")], "Lame")
 
+    def test_projects(self):
+        """Le projet de chaque rôle intégré est noté dans role.c, relu,
+        et retiré avec le reste."""
+        orig = self.originals()
+        home = os.path.expanduser("~/a/p.json")
+        files = I.plan(self.src, self.mods, self.g,
+                       {"VALKYRIE": home, "BARBARIAN": "/b/q.json",
+                        "TOURIST": "/c/r.json"})
+        self.assertIn(" *   VALKYRIE ~/a/p.json\n", files[I.ROLE_C])
+        I.apply(self.src, files)
+        self.assertEqual(I.installed_projects(self.src),
+                         {"VALKYRIE": home, "BARBARIAN": "/b/q.json"})
+        self.assertEqual(I.installed_roles(self.src, self.g),
+                         {"VALKYRIE", "BARBARIAN"})
+        self.assertEqual(D.parse_roles(files[I.ROLE_C])[0]["name"],
+                         self.g.roles[0]["name"])
+        I.uninstall(self.src)
+        self.assertEqual(self.originals(), orig)
+        self.assertEqual(I.installed_projects(self.src), {})
+
     def test_rank_conflicts(self):
         """Un titre anglais déjà employé par un autre rôle est signalé
         quand sa traduction change ; un titre neuf ne l'est pas."""

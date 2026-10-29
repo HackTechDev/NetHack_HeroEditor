@@ -13,7 +13,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 
 | Thème | Fait | Reste |
 |---|---|---|
-| 1. Limites connues | 3 / 6 | 1.4 à 1.6 |
+| 1. Limites connues | 4 / 6 | 1.5 et 1.6 |
 | 2. Vérification | 0 / 6 | tout |
 | 3. Héros et parties | 0 / 7 | tout |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
@@ -53,11 +53,15 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    interfaces du dernier build, lues dans `dat/options` (ou d'après les
    fichiers objets), et l'intégration prévient quand des tuiles changent
    alors que ni X11 ni Qt ne sont compilés.
-4. **Un seul projet par jeu** **[moyen]**. Une intégration remplace
-   toutes les modifications de rôles faites avant, même par un autre
-   projet. Retenir le projet d'origine de chaque rôle intégré et
-   prévenir avant de l'écraser (l'aperçu dit déjà « modifié dans les
-   sources »).
+4. **Un seul projet par jeu** **[moyen]** — ✅ **Fait**. Une
+   intégration remplaçait toutes les modifications faites avant, même
+   par un autre projet. Le projet de chaque rôle intégré est maintenant
+   noté dans `role.c` (commentaire marqué, retiré avec le reste) : `I`
+   garde les rôles des autres projets (relus dans leur fichier, dans
+   leur état actuel) ou les retire au choix, `R` peut ne retirer que
+   ceux du projet ouvert, et l'aperçu dit « intégré par le projet … ».
+   Un rôle intégré par une version précédente de l'éditeur n'a pas de
+   projet connu : il est signalé et retiré.
 5. **Traductions sur plusieurs lignes** **[facile]**. Le remplacement
    d'une traduction dans les `.po` ne gère que les `msgstr` d'une seule
    ligne ; les titres de rang le sont tous aujourd'hui, mais un titre

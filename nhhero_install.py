@@ -12,7 +12,9 @@ Fichiers touchés (chemins relatifs aux sources) :
   src/role.c                entrée du rôle dans roles[] (titres, dieux,
                             races, sexes et alignements permis,
                             attributs, PV et énergie de départ) ;
-                            l'entrée d'origine reste dans un « #if 0 »
+                            l'entrée d'origine reste dans un « #if 0 » ;
+                            un commentaire avant roles[] donne le
+                            projet de chaque rôle intégré
   src/u_init.c              inventaires de départ (tableaux trobj, avec
                             l'original en « #if 0 »), or et intrinsèques
                             de départ (bloc ajouté après u_init_race())
@@ -49,6 +51,7 @@ PO_CYBER = "po/themes/fr@cyber.po"
 POT = "po/nethack.pot"
 ALL_FILES = [ROLE_C, U_INIT_C, INSIGHT_C, TILES, PO_FR, PO_CYBER, POT]
 START_KEY = "start"
+PROJECTS_KEY = "projects"
 FEMININE_KEY = "feminine-rank"
 
 
@@ -118,6 +121,46 @@ STRIP = {ROLE_C: strip_c, U_INIT_C: strip_c, INSIGHT_C: strip_c,
 def clean_text(src, rel):
     """Texte d'origine du fichier (sans les modifications de l'éditeur)."""
     return STRIP[rel](_read(src, rel)) if rel in STRIP else _read(src, rel)
+
+
+def installed_projects(src):
+    """{rôle: chemin du projet} des rôles intégrés (commentaire de
+    role.c ; vide pour une intégration sans ce commentaire)."""
+    try:
+        text = _read(src, ROLE_C)
+    except OSError:
+        return {}
+    mo = re.search(r"/\* %s:begin %s \*/\n(.*?)/\* %s:end %s \*/" % (
+        TAG, PROJECTS_KEY, TAG, PROJECTS_KEY), text, re.S)
+    out = {}
+    for line in (mo.group(1).split("\n") if mo else []):
+        m2 = re.match(r"^ \*   ([A-Z_]+) (.+)$", line)
+        if m2:
+            out[m2.group(1)] = os.path.expanduser(
+                m2.group(2).replace("*_/", "*/"))
+    return out
+
+
+def installed_roles(src, game):
+    """Rôles modifiés dans les sources (entrée, inventaire, or et
+    intrinsèques, tuiles), qu'ils aient un projet connu ou non."""
+    keys = installed_keys(src)
+    out = set()
+    try:
+        start = re.search(r"/\* %s:begin %s \*/.*?/\* %s:end %s \*/" % (
+            TAG, START_KEY, TAG, START_KEY), _read(src, U_INIT_C), re.S)
+    except OSError:
+        start = None
+    cases = set(re.findall(r"case (PM_\w+):", start.group())) if start \
+        else set()
+    for r in game.roles:
+        key = D.role_key(r)
+        tile = game.tile_names.get(r["mnum"])
+        if key in keys or r["mnum"] in cases or \
+                any("kit:" + n in keys for n in game.kit_names(r)) or \
+                any("tile:%s,%s" % (tile, g) in keys for g in D.GENDERS):
+            out.add(key)
+    return out
 
 
 def installed_keys(src):
@@ -305,6 +348,28 @@ def role_mod_c(mod):
     return {k: v for k, v in mod.items()
             if k in ("ranks_en", "gods", "allow", "attrbase", "attrdist",
                      "hp", "en")}
+
+
+def _home(path):
+    """Chemin avec ~ pour le dossier personnel."""
+    home = os.path.expanduser("~")
+    if path == home or path.startswith(home + os.sep):
+        return "~" + path[len(home):]
+    return path
+
+
+def insert_projects(text, origins):
+    """role.c avec, avant roles[], le projet de chaque rôle intégré."""
+    if not origins:
+        return text
+    pos = D.find_array(text, "roles")
+    ls = text.rfind("\n", 0, pos) + 1
+    block = "/* %s:begin %s */\n" % (TAG, PROJECTS_KEY) + \
+        "/* rôles modifiés avec nhheroedit, et leur projet :\n" + \
+        "".join(" *   %s %s\n" % (k, _home(origins[k]).replace("*/", "*_/"))
+                for k in sorted(origins)) + \
+        " */\n/* %s:end %s */\n" % (TAG, PROJECTS_KEY)
+    return text[:ls] + block + text[ls:]
 
 
 def insert_roles(text, game, mods):
@@ -595,9 +660,10 @@ def active_mods(mods):
     return {k: v for k, v in (mods or {}).items() if v}
 
 
-def plan(src, mods, game=None):
+def plan(src, mods, game=None, origins=None):
     """Nouveaux textes des fichiers : {chemin relatif: texte}, d'après
-    les fichiers d'origine. Ne touche à rien sur le disque."""
+    les fichiers d'origine. Ne touche à rien sur le disque. origins :
+    {rôle: chemin du projet}, noté dans role.c."""
     game = game or GameData(src)
     mods = active_mods(mods)
     for key in mods:
@@ -605,6 +671,8 @@ def plan(src, mods, game=None):
             raise InstallError(_("Rôle %s absent de %s") % (key, ROLE_C))
     out = {}
     out[ROLE_C] = insert_roles(clean_text(src, ROLE_C), game, mods)
+    out[ROLE_C] = insert_projects(out[ROLE_C], {
+        k: p for k, p in (origins or {}).items() if k in mods})
     u_init = insert_kits(clean_text(src, U_INIT_C), game, mods)
     out[U_INIT_C] = insert_start(u_init, game, mods)
     if os.path.isfile(os.path.join(src, TILES)):

@@ -287,8 +287,9 @@ class Editor(Popups, Game):
     # --- état des sources ----------------------------------------------------
 
     def source_state(self):
-        """(sources à jour pour le projet ?, clés installées) ; calcul
-        mis en cache tant que ni le projet ni les fichiers ne changent."""
+        """(sources à jour pour le projet ?, rôles modifiés dans les
+        sources, rôles des autres projets) ; calcul mis en cache tant que
+        ni le projet ni les fichiers ne changent."""
         mt = []
         for rel in I.ALL_FILES:
             try:
@@ -297,26 +298,76 @@ class Editor(Popups, Game):
                 mt.append(0)
         key = (json.dumps(self.roles, sort_keys=True), tuple(mt))
         if self._state[0] != key:
+            others = self.other_projects()
             try:
-                files = I.plan(self.src, self.roles, self.game())
+                mods, origins = self.merged_roles(others)
+                files = I.plan(self.src, mods, self.game(), origins)
                 ok = not I.changed_files(self.src, files)
             except (I.InstallError, OSError, ValueError):
                 ok = False
-            self._state = (key, (ok, I.installed_keys(self.src)))
+            try:
+                present = I.installed_roles(self.src, self.game())
+            except (OSError, ValueError):
+                present = set()
+            self._state = (key, (ok, present, others))
         return self._state[1]
+
+    def other_projects(self):
+        """Rôles modifiés dans les sources par d'autres projets : {clé:
+        (chemin du projet, modifications)} ; chemin None quand le projet
+        n'est pas connu, modifications None quand il est illisible."""
+        try:
+            origins = I.installed_projects(self.src)
+            roles = I.installed_roles(self.src, self.game())
+        except (OSError, ValueError):
+            return {}
+        out, read = {}, {}
+        for k in sorted(set(origins) | roles):
+            path = origins.get(k)
+            if path and os.path.abspath(path) == self.project:
+                continue
+            if not path and self.mod(k):
+                continue        # intégré avant que les projets soient notés
+            mod = None
+            if path:
+                if path not in read:
+                    try:
+                        read[path] = P.read_project(path)[1]
+                    except P.ProjectError:
+                        read[path] = {}
+                mod = read[path].get(k)
+            out[k] = (path, mod)
+        return out
+
+    def merged_roles(self, others, keep=True):
+        """(modifications, projets) à intégrer : les rôles du projet, et
+        ceux que d'autres projets ont intégrés (keep) s'il n'y touche pas."""
+        mods = {k: v for k, v in self.roles.items() if v}
+        origins = {k: self.project for k in mods}
+        for k, (path, mod) in others.items() if keep else ():
+            if k not in mods and mod:
+                mods[k], origins[k] = mod, path
+        return mods, origins
+
+    def role_label(self, key):
+        role = self.game().role(key)
+        return self.game().names.role(role, "male", self.theme) if role \
+            else key
 
     def role_status(self, key):
         """(texte, attribut) de l'état du rôle dans les sources."""
-        ok, keys = self.source_state()
-        role = self.game().role(key)
-        kits = self.game().kit_names(role) if role else []
-        tiles = [self.game().tile_names.get(role["mnum"], "?")
-                 if role else "?"]
-        mine = {key, I.START_KEY} | {"kit:" + k for k in kits} | \
-            {"tile:%s,%s" % (tiles[0], g) for g in D.GENDERS}
-        present = bool(mine & keys)
+        ok, installed, others = self.source_state()
+        present = key in installed
+        other = others.get(key, (None, None))[0]
+        if other and not self.mod(key):
+            return _("intégré par le projet %s") % os.path.basename(other), \
+                self.colors.fg(curses.COLOR_CYAN, True)
+        if other and not ok:
+            return _("intégré par le projet %s (I le remplacera)") % \
+                os.path.basename(other), \
+                self.colors.fg(curses.COLOR_YELLOW, True)
         if not self.mod(key):
-            if key in keys or any(("kit:" + k) in keys for k in kits):
+            if present:
                 return _("modifié dans les sources (R pour retirer)"), \
                     self.colors.fg(curses.COLOR_YELLOW, True)
             return _("rôle d'origine"), curses.A_DIM
@@ -1630,8 +1681,25 @@ class Editor(Popups, Game):
         if not self.check_src():
             return
         g = self.game()
+        others = self.other_projects()
+        kept = [k for k, (_p, m) in others.items()
+                if m and not self.mod(k)]
+        keep = True
+        if kept:
+            try:
+                keep = self.menu(
+                    _("Rôles intégrés par d'autres projets"), [
+                        (_("Les garder"), ", ".join(
+                            "%s (%s)" % (self.role_label(k), os.path.basename(
+                                others[k][0])) for k in kept)),
+                        (_("Les retirer des sources"),
+                         _("seuls les rôles de ce projet restent"))],
+                    filterable=False) == 0
+            except Cancel:
+                return
+        mods, origins = self.merged_roles(others, keep)
         errs = []
-        for k, mod in sorted(self.roles.items()):
+        for k, mod in sorted(mods.items()):
             role = g.role(k)
             if role:
                 errs += ["%s : %s" % (role["name"][0], m)
@@ -1644,7 +1712,7 @@ class Editor(Popups, Game):
                 ["  ✖ " + e for e in errs[:15]])
             return
         try:
-            files = I.plan(self.src, self.roles, g)
+            files = I.plan(self.src, mods, g, origins)
         except (I.InstallError, ValueError) as e:
             self.message_box(_("Intégration impossible"), [str(e)])
             return
@@ -1659,13 +1727,26 @@ class Editor(Popups, Game):
         self.viewer(_("Changements prévus (q pour continuer)"),
                     [(l, self.diff_attr(l))
                      for l in I.diff(self.src, files).split("\n")])
-        names = ", ".join(g.role(k)["name"][0] for k in sorted(self.roles)
-                          if g.role(k)) or _("aucun (retour au jeu "
-                                             "d'origine)")
+        names = ", ".join(self.role_label(k) for k in sorted(self.roles)
+                          if self.roles[k] and g.role(k)) or \
+            _("aucun (retour au jeu d'origine)")
+        notes = []
+        for label, ks in (
+                (_("Gardés (autres projets) : %s"),
+                 [k for k in mods if k not in self.roles or
+                  not self.roles[k]]),
+                (_("Remplacés par ce projet : %s"),
+                 [k for k in others if self.mod(k)]),
+                (_("Retirés des sources : %s"),
+                 [k for k in others if k not in mods])):
+            if ks:
+                notes.append(label % ", ".join(self.role_label(k)
+                                               for k in sorted(ks)))
         if not self.confirm(_("Écrire dans les sources (%s) ?\n\nRôles "
-                              "modifiés : %s\n\nLes fichiers sont d'abord "
-                              "copiés dans sauvegardes/.") % (self.src,
-                                                               names)):
+                              "modifiés : %s\n%s\nLes fichiers sont d'abord "
+                              "copiés dans sauvegardes/.") % (
+                                  self.src, names, "".join(
+                                      n + "\n" for n in notes))):
             return
         ch, _bk = I.apply(self.src, files, BACKUP_DIR)
         self._state = (None, None)
@@ -1677,7 +1758,7 @@ class Editor(Popups, Game):
                 any(I.TILES == rel for rel in ch):
             self.msg += _(" (tuiles : le jeu compilé n'a ni X11 ni Qt, "
                           "qui seuls les affichent)")
-        self.offer_commit(ch, I.commit_message(g, self.roles))
+        self.offer_commit(ch, I.commit_message(g, mods))
 
     def offer_commit(self, changed, message):
         if not changed or not I.is_git_repo(self.src):
@@ -1715,9 +1796,23 @@ class Editor(Popups, Game):
     def remove(self):
         if not self.check_src():
             return
-        keys = I.installed_keys(self.src)
+        g = self.game()
+        others = {k: v for k, v in self.other_projects().items() if v[1]}
+        mods, origins = {}, {}
+        if others:
+            try:
+                if self.menu(_("Rôles intégrés par d'autres projets"), [
+                        (_("Retirer seulement ceux de ce projet"),
+                         _("garder : %s") % ", ".join(
+                             self.role_label(k) for k in others)),
+                        (_("Tout retirer"), _("rend les fichiers d'origine"))],
+                        filterable=False) == 0:
+                    mods = {k: m for k, (_p, m) in others.items()}
+                    origins = {k: p for k, (p, _m) in others.items()}
+            except Cancel:
+                return
         try:
-            files = I.plan(self.src, {}, self.game())
+            files = I.plan(self.src, mods, g, origins)
         except (I.InstallError, ValueError) as e:
             self.message_box(_("Retrait impossible"), [str(e)])
             return
@@ -1725,13 +1820,16 @@ class Editor(Popups, Game):
             self.msg = _("Aucune modification de l'éditeur dans les "
                          "sources")
             return
+        gone = sorted(I.installed_roles(self.src, g) - set(mods))
         if not self.confirm(_("Retirer des sources les modifications de "
-                              "l'éditeur ?\n%s") % ", ".join(sorted(keys))):
+                              "l'éditeur ?\n%s") % (", ".join(
+                                  self.role_label(k) for k in gone) or
+                                  _("(textes de l'éditeur seulement)"))):
             return
         ch, _bk = I.apply(self.src, files, BACKUP_DIR)
         self._state = (None, None)
         self.msg = _("Retiré de %d fichier(s)") % len(ch)
-        self.offer_commit(ch, I.commit_message(self.game(), {}))
+        self.offer_commit(ch, I.commit_message(g, mods))
 
     def restore_backup(self):
         if not self.check_src():

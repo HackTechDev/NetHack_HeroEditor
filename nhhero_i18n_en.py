@@ -843,8 +843,8 @@ EN = {
         'to copy into ~/.nethackrc, or NETHACKOPTIONS=@file',
     'Indiquez-les avec --src ou NHHEROEDIT_SRC.':
         'Give them with --src or NHHEROEDIT_SRC.',
-    "Écrire dans les sources (%s) ?\n\nRôles modifiés : %s\n\nLes fichiers sont d'abord copiés dans sauvegardes/.":
-        'Write to the sources (%s)?\n\nChanged roles: %s\n\nThe files are first copied into sauvegardes/.',
+    "Écrire dans les sources (%s) ?\n\nRôles modifiés : %s\n%s\nLes fichiers sont d'abord copiés dans sauvegardes/.":
+        'Write to the sources (%s)?\n\nChanged roles: %s\n%s\nThe files are first copied into sauvegardes/.',
     'Retrait impossible':
         'Removal impossible',
     "Retirer des sources les modifications de l'éditeur ?\n%s":
@@ -965,4 +965,30 @@ EN = {
         'title « %s »: the game already uses it (%s); its translation will change there too — another English title avoids it',
     " (tuiles : le jeu compilé n'a ni X11 ni Qt, qui seuls les affichent)":
         ' (tiles: the compiled game has neither X11 nor Qt, the only ones that show them)',
+    'Gardés (autres projets) : %s':
+        'Kept (other projects): %s',
+    'Remplacés par ce projet : %s':
+        'Replaced by this project: %s',
+    'Retirés des sources : %s':
+        'Removed from the sources: %s',
+    'intégré par le projet %s':
+        'integrated by the project %s',
+    'intégré par le projet %s (I le remplacera)':
+        'integrated by the project %s (I will replace it)',
+    "Rôles intégrés par d'autres projets":
+        'Roles integrated by other projects',
+    "(textes de l'éditeur seulement)":
+        "(editor's texts only)",
+    'Les garder':
+        'Keep them',
+    'Les retirer des sources':
+        'Remove them from the sources',
+    'seuls les rôles de ce projet restent':
+        "only this project's roles remain",
+    'Retirer seulement ceux de ce projet':
+        "Remove only this project's",
+    'Tout retirer':
+        'Remove everything',
+    'garder : %s':
+        'keep: %s',
 }

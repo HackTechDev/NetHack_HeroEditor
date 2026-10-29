@@ -134,7 +134,7 @@ que les sources modifiées. `x` écrit les options dans
 
    | Fichier | Changement |
    |---|---|
-   | `src/role.c` | l'entrée du rôle dans `roles[]` ; l'originale reste dans un `#if 0` |
+   | `src/role.c` | l'entrée du rôle dans `roles[]` ; l'originale reste dans un `#if 0` ; avant `roles[]`, un commentaire donne le projet de chaque rôle intégré |
    | `src/u_init.c` | les tableaux d'inventaire (originaux en `#if 0`), et un bloc pour l'or et les intrinsèques après `u_init_race()` |
    | `src/insight.c` | quand des titres de rang changent : le titre au féminin dans `^X` et dans la liste des rangs atteints (appels d'origine en `#if 0`) |
    | `win/share/monsters.txt` | les tuiles du rôle (l'originale en commentaire dessous) |
@@ -144,6 +144,12 @@ que les sources modifiées. `x` écrit les options dans
    d'origine : une nouvelle intégration repart des fichiers d'origine,
    et `R` les rend **à l'identique**. Si les sources sont un dépôt git,
    un commit des fichiers touchés est proposé.
+
+   **Plusieurs projets.** Chaque intégration repart des fichiers
+   d'origine : les rôles intégrés par un autre projet sont relus dans
+   leur projet (noté dans `role.c`) et gardés, ou retirés si vous le
+   choisissez. `R` propose de même de ne retirer que les rôles du projet
+   ouvert. L'aperçu indique « intégré par le projet … ».
 
 2. **`m` — compiler**, 3. **`U` — mettre à jour le jeu installé**
    (`make update` garde `sysconf`, scores et sauvegardes), 4. **`j` —
