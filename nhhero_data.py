@@ -181,6 +181,62 @@ TILE_PALETTE = [
 ]
 TILE_CHARS = {c for c, _rgb in TILE_PALETTE}
 
+# calques Night City, à poser sur une tuile de héros (l dans l'éditeur
+# de pixels) ; espace : transparent. Placés pour la silhouette commune
+# des héros du jeu (yeux à la ligne 5, bras aux colonnes 4 et 11).
+LAYERS = [
+    (_("Visière"), [
+        "", "", "", "",
+        "     I    I",
+        "     BBBBBB",
+    ]),
+    (_("Implants"), [
+        "", "", "", "",
+        "         I",
+        "",
+        "      B",
+        "       B",
+    ]),
+    (_("Bras mécanique"), [
+        "", "", "", "", "", "", "", "",
+        "    Z",
+        "    X",
+        "    B",
+        "    X",
+        "    U",
+    ]),
+    (_("Manteau long"), [
+        "", "", "", "", "", "", "",
+        "     I    I",
+        "    RR    RR",
+        "     R    R",
+        "     R    R",
+        "     R    R",
+        "     RR  RR",
+        "     RR  RR",
+        "    RRR  RRR",
+    ]),
+    (_("Arme"), [
+        "", "", "", "", "", "", "", "",
+        "",
+        "           XXXXB",
+        "            S",
+        "            S",
+    ]),
+]
+
+
+def apply_layer(tile, layer, dy=0, dx=0):
+    """Tuile avec le calque posé, décalé de (dy, dx) ; ce qui sort de la
+    tuile est perdu."""
+    rows = [list(r) for r in tile]
+    for j, line in enumerate(layer):
+        for i, c in enumerate(line):
+            y, x = j + dy, i + dx
+            if c != " " and 0 <= y < TILE_SIZE and 0 <= x < TILE_SIZE:
+                rows[y][x] = c
+    return ["".join(r) for r in rows]
+
 # thèmes d'affichage des noms : anglais (noms internes), français, cyber
 THEMES = ["cyber", "fr", "en"]
 THEME_FR = {"cyber": _("Night City (fr@cyber)"), "fr": _("français"),

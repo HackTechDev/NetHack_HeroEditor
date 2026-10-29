@@ -119,6 +119,11 @@ peindre, clic droit pipette, molette pour la couleur.
 La tuile de l'autre sexe est montrée sous l'aperçu ; `c` la recopie
 (par exemple la tuile mâle vers la femelle, puis quelques retouches).
 
+`l` pose un **calque Night City** : visière, implants, bras mécanique,
+manteau long ou arme. Le calque est placé pour la silhouette des héros
+du jeu ; les flèches le déplacent, Entrée le pose (une annulation `u`),
+Échap y renonce.
+
 ## Touches
 
 | Touche | Action |

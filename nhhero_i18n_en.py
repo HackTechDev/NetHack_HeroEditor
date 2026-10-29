@@ -1213,4 +1213,20 @@ EN = {
         '   c : copy the other sex',
     '%s (c)':
         '%s (c)',
+    'Visière':
+        'Visor',
+    'Implants':
+        'Implants',
+    'Bras mécanique':
+        'Cyberarm',
+    'Manteau long':
+        'Long coat',
+    'Arme':
+        'Weapon',
+    'l : poser un calque Night City (visière, bras...)':
+        'l : add a Night City layer (visor, arm...)',
+    'Calque %s : flèches pour le placer, Entrée pour le poser, Échap pour renoncer':
+        'Layer %s: arrows to place it, Enter to apply, Escape to cancel',
+    'Calque Night City':
+        'Night City layer',
 }

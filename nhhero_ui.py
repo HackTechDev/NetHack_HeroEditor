@@ -646,6 +646,7 @@ class Popups:
         undo = []
         y = x = 7
         color = "P"
+        layer = None        # [nom, lignes, dy, dx] du calque en pose
         S = D.TILE_SIZE
         help_lines = [
             _("←↑→↓ : déplacer     Espace : peindre"),
@@ -657,6 +658,7 @@ class Popups:
             _("h : retourner     i : importer une tuile du jeu"),
             _("o : tuile d'origine du rôle") + (
                 _("   c : copier l'autre sexe") if other else ""),
+            _("l : poser un calque Night City (visière, bras...)"),
             _("x : tout effacer  u : annuler  q : abandonner"),
             _("souris : clic peindre, clic droit pipette,"),
             _("         molette couleur     Échap : terminer"),
@@ -671,12 +673,19 @@ class Popups:
                     self.colors.pair(curses.COLOR_BLACK,
                                      curses.COLOR_MAGENTA) | curses.A_BOLD)
                 oy, ox = 2, 2
+                shown = grid
+                if layer:
+                    shown = D.apply_layer(grid, *layer[1:])
+                    put(self.stdscr, 1, 2, _("Calque %s : flèches pour le "
+                                             "placer, Entrée pour le poser, "
+                                             "Échap pour renoncer")
+                        % layer[0], curses.A_BOLD)
                 for j in range(S):
                     for i in range(S):
-                        ch = grid[j][i]
+                        ch = shown[j][i]
                         a = self.colors.pixel(ch)
                         s = "  "
-                        if (j, i) == (y, x):
+                        if (j, i) == (y, x) and not layer:
                             s = "[]"
                             a = self.colors.pixel(
                                 ch, curses.COLOR_WHITE
@@ -689,7 +698,8 @@ class Popups:
                 for j in range(0, S, 2):
                     for i in range(S):
                         put(self.stdscr, oy + 1 + j // 2, px + i, "▀",
-                            self.colors.halfblock(grid[j][i], grid[j + 1][i]))
+                            self.colors.halfblock(shown[j][i],
+                                                  shown[j + 1][i]))
                 if other:
                     put(self.stdscr, oy + 9, px, clip(other[0], S + 2),
                         curses.A_DIM)
@@ -719,6 +729,20 @@ class Popups:
                 def save():
                     undo.append([r[:] for r in grid])
                     del undo[:-50]
+                if layer:
+                    moves = {curses.KEY_UP: (-1, 0), curses.KEY_DOWN: (1, 0),
+                             curses.KEY_LEFT: (0, -1),
+                             curses.KEY_RIGHT: (0, 1)}
+                    if k in moves:
+                        layer[2] += moves[k][0]
+                        layer[3] += moves[k][1]
+                    elif k in (" ", "\n", "\r", curses.KEY_ENTER):
+                        save()
+                        grid = [list(r) for r in shown]
+                        layer = None
+                    elif k == ESC or k == "q":
+                        layer = None
+                    continue
                 if k == ESC:
                     return ["".join(r) for r in grid]
                 if isinstance(k, Mouse):
@@ -799,6 +823,14 @@ class Popups:
                 elif k == "o" and original:
                     save()
                     grid = [list(r) for r in original]
+                elif k == "l":
+                    try:
+                        n = self.menu(_("Calque Night City"),
+                                      [(name, "") for name, _l in D.LAYERS],
+                                      filterable=False)
+                    except Cancel:
+                        continue
+                    layer = [D.LAYERS[n][0], D.LAYERS[n][1], 0, 0]
                 elif k == "c" and other:
                     save()
                     grid = [list(r) for r in other[1]]

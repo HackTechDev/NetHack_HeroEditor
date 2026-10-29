@@ -71,7 +71,8 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   jeu ; deux variantes pour le Barbare.
 - Tuiles mâle et femelle du rôle : éditeur de pixels, import de la tuile
   d'un monstre du jeu, retour à la tuile d'origine ; la tuile de l'autre
-  sexe est montrée à côté et peut être recopiée.
+  sexe est montrée à côté et peut être recopiée ; calques Night City
+  (visière, implants, bras mécanique, manteau long, arme) à placer.
 - Vérifications : total des poids (100), base (3 à 18, 75 points au
   plus), rôle sans race, sexe ou alignement, objets inconnus ou de la
   mauvaise classe, quantités, enchantements, caractères interdits ;

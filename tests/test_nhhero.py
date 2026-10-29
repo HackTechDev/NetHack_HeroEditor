@@ -408,6 +408,22 @@ class TestGame(unittest.TestCase):
             self.assertTrue(G.mode_allowed(d, "-X", "Kai")[0])
 
 
+class TestTiles(unittest.TestCase):
+    def test_layers(self):
+        for name, layer in D.LAYERS:
+            self.assertLessEqual(len(layer), D.TILE_SIZE, name)
+            for line in layer:
+                self.assertLessEqual(len(line), D.TILE_SIZE, name)
+                self.assertFalse(set(line) - D.TILE_CHARS - {" "}, name)
+        t = D.blank_tile()
+        visor = D.apply_layer(t, D.LAYERS[0][1])
+        self.assertEqual(visor[5], ".....BBBBBB.....")
+        self.assertEqual(visor[:4], t[:4])
+        moved = D.apply_layer(t, D.LAYERS[0][1], -1, 6)
+        self.assertEqual(moved[4], "...........BBBBB")    # le reste sort
+        self.assertEqual(D.apply_layer(t, ["A"], -1, 0), t)
+
+
 class TestDisplay(unittest.TestCase):
     def test_display_profile(self):
         """Profil d'affichage : options, règles MENUCOLOR, windowtype en
