@@ -686,7 +686,8 @@ class TestProject(unittest.TestCase):
         with tempfile.NamedTemporaryFile("w", suffix=".ini",
                                          delete=False) as f:
             f.write("[editeur]\ntheme = fr\nsouris = non\n"
-                    "couleurs = 24bits\n[jeu]\nbidule = 1\n")
+                    "couleurs = 24bits\n[jeu]\nbidule = 1\n"
+                    "cartes = ~/nhmapedit.sh\n")
         try:
             cfg, errs = C.load(f.name)
         finally:
@@ -694,7 +695,24 @@ class TestProject(unittest.TestCase):
         self.assertEqual(cfg["theme"], "fr")
         self.assertFalse(cfg["mouse"])
         self.assertTrue(cfg["truecolor"])
+        self.assertEqual(cfg["maps"], os.path.expanduser("~/nhmapedit.sh"))
         self.assertEqual(len(errs), 1)
+
+    def test_quest(self):
+        with tempfile.TemporaryDirectory() as d:
+            os.mkdir(os.path.join(d, "dat"))
+            for lvl in ("goal", "strt"):
+                open(os.path.join(d, "dat", "Val-%s.lua" % lvl), "w").close()
+            self.assertEqual([lvl for _p, lvl, _d in G.quest_levels(d, "Val")],
+                             ["strt", "goal"])
+            self.assertEqual(G.quest_levels(d, "Sam"), [])
+            tool = os.path.join(d, "nhmapedit.sh")
+            open(tool, "w").close()
+            self.assertIsNone(G.map_editor({"maps": tool}))
+            os.chmod(tool, 0o755)
+            self.assertEqual(G.map_editor({"maps": tool}), tool)
+        if HAVE_SRC:
+            self.assertEqual(len(G.quest_levels(SRC, "Val")), 5)
 
     def test_args(self):
         p, s, a = E.parse_args(["x.json", "--src", "/tmp"])

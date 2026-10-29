@@ -17,6 +17,10 @@ make = -j8
 ; fenêtre tmux si l'écran est étroit) ; non : en plein écran
 tmux = oui
 
+; éditeur de cartes ouvert par Q (niveaux de quête du rôle) ;
+; par défaut ../NetHack_MapEditor/nhmapedit.sh
+;cartes = ~/JEUX/NETHACK/NetHack_MapEditor/nhmapedit.sh
+
 [editeur]
 ; projet ouvert quand aucun n'est donné (défaut : heros.json)
 projet = ~/JEUX/NETHACK/NetHack_HeroEditor/heros.json

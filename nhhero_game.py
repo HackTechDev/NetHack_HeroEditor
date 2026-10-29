@@ -26,6 +26,17 @@ from nhhero_i18n import _
 from nhhero_ui import Cancel
 
 DEFAULT_HACKDIR = os.path.expanduser("~/nh/install/games/lib/nethackdir")
+# éditeur de cartes (Q : niveaux de quête du rôle)
+DEFAULT_MAP_EDITOR = os.path.join(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))), "NetHack_MapEditor", "nhmapedit.sh")
+# niveaux de quête : dat/<code du rôle>-<niveau>.lua
+QUEST_LEVELS = [
+    ("strt", _("accueil : le chef, ses gardes et le portail")),
+    ("fila", _("remplissage avant le repaire")),
+    ("loca", _("repaire de l'ennemi")),
+    ("filb", _("remplissage avant le but")),
+    ("goal", _("but : le némésis et l'artefact")),
+]
 # parties sauvegardées mises de côté : parties/<nom>/<date>/<fichier>
 ASIDE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "parties")
@@ -430,6 +441,24 @@ def find_hackdir(config, src):
     return None
 
 
+def quest_levels(src, filecode):
+    """Niveaux de quête du rôle présents dans les sources : [(chemin,
+    niveau, description)]."""
+    out = []
+    for lvl, desc in QUEST_LEVELS:
+        p = os.path.join(src, "dat", "%s-%s.lua" % (filecode, lvl))
+        if os.path.isfile(p):
+            out.append((p, lvl, desc))
+    return out
+
+
+def map_editor(config):
+    """Script de l'éditeur de cartes (configuration, sinon le dossier
+    voisin NetHack_MapEditor), ou None s'il n'est pas exécutable."""
+    p = config.get("maps") or DEFAULT_MAP_EDITOR
+    return p if os.access(p, os.X_OK) else None
+
+
 def hero_line(h, g, theme="cyber"):
     """« Solo humaine, chaotique »."""
     role, race = g.role(h["role"]), g.race(h["race"])
@@ -509,6 +538,45 @@ class Game:
         return where
     def hackdir(self):
         return find_hackdir(self.config, self.src)
+
+    def edit_quest(self):
+        """Q : ouvrir un niveau de quête du rôle dans l'éditeur de cartes."""
+        h = self.hero()
+        role = self.role_of(h)
+        if not role:
+            return
+        name = self.game().names.role(role, h["gender"], self.theme)
+        levels = quest_levels(self.src, role["filecode"])
+        if not levels:
+            self.message_box(_("Quête"), [_("Aucun niveau de quête "
+                             "dat/%s-*.lua dans les sources.")
+                             % role["filecode"]])
+            return
+        tool = map_editor(self.config)
+        if not tool:
+            self.message_box(_("Éditeur de cartes introuvable"), [
+                _("nhmapedit n'est pas dans %s :") % DEFAULT_MAP_EDITOR,
+                _("indiquez son script avec « cartes = » dans la section"),
+                _("[jeu] de la configuration.")])
+            return
+        try:
+            i = self.menu(_("Quête du rôle %s : ouvrir dans nhmapedit")
+                          % name, [(os.path.basename(p), d)
+                                   for p, _l, d in levels], filterable=False)
+        except Cancel:
+            return
+        path = levels[i][0]
+        cmd = "%s %s" % (shlex.quote(tool), shlex.quote(path))
+        if self.use_tmux() and tmux("new-window", "-n", "carte-" +
+                                    levels[i][1], cmd) is not None:
+            self.msg = _("%s ouvert dans nhmapedit (fenêtre tmux "
+                         "« carte-%s ») ; m puis U pour jouer avec") % (
+                             os.path.basename(path), levels[i][1])
+            return
+        rc = self.run_external(_("nhmapedit — %s") % os.path.basename(path),
+                               cmd, os.path.dirname(tool))
+        self.msg = _("Retour de nhmapedit (code %d) ; m puis U pour jouer "
+                     "avec le niveau modifié") % rc
 
     def games(self, name):
         """Parties du héros name (xlogfile relu quand il change)."""

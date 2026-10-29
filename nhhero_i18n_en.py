@@ -1271,4 +1271,36 @@ EN = {
         'the game only names the kitten, the little dog and the pony: %s will stay unnamed',
     'Animal %s du rôle %s absent de %s (robot retiré de nhmonedit ?)':
         'Pet %s of the role %s missing from %s (robot removed from nhmonedit?)',
+    'accueil : le chef, ses gardes et le portail':
+        'home: the leader, the guards and the portal',
+    'remplissage avant le repaire':
+        "filler before the enemy's lair",
+    "repaire de l'ennemi":
+        "the enemy's lair",
+    'remplissage avant le but':
+        'filler before the goal',
+    "but : le némésis et l'artefact":
+        'goal: the nemesis and the artifact',
+    'Quête':
+        'Quest',
+    'Aucun niveau de quête dat/%s-*.lua dans les sources.':
+        'No quest level dat/%s-*.lua in the sources.',
+    'Éditeur de cartes introuvable':
+        'Map editor not found',
+    "nhmapedit n'est pas dans %s :":
+        'nhmapedit is not in %s:',
+    'indiquez son script avec « cartes = » dans la section':
+        'give its script with « cartes = » in the section',
+    '[jeu] de la configuration.':
+        '[jeu] of the configuration.',
+    'Quête du rôle %s : ouvrir dans nhmapedit':
+        'Quest of the role %s: open in nhmapedit',
+    '%s ouvert dans nhmapedit (fenêtre tmux « carte-%s ») ; m puis U pour jouer avec':
+        '%s opened in nhmapedit (tmux window « carte-%s »); m then U to play with it',
+    'nhmapedit — %s':
+        'nhmapedit — %s',
+    'Retour de nhmapedit (code %d) ; m puis U pour jouer avec le niveau modifié':
+        'Back from nhmapedit (code %d); m then U to play with the modified level',
+    '  Q            niveaux de quête du rôle dans nhmapedit':
+        "  Q            the role's quest levels in nhmapedit",
 }

@@ -159,6 +159,7 @@ couleurs ; le titre de l'éditeur de pixels dit lequel. Pour forcer :
 | `v` `c` `x` | vérifier, voir les options et le code, écrire le `.nethackrc` |
 | `I` `R` | intégrer aux sources, retirer ou rétablir une sauvegarde |
 | `m` `U` `j` | compiler, mettre à jour le jeu installé, jouer |
+| `h` `Q` | historique des parties, niveaux de quête du rôle dans nhmapedit |
 | `p` | projet : fusionner, exporter ou importer un héros, rendre un rôle d'origine |
 | `s` `u` Ctrl-R `?` `q` | enregistrer, annuler, rétablir, aide, quitter |
 
@@ -214,6 +215,17 @@ Il s'appuie sur deux commandes, utilisables aussi à la main :
 
 `--jouer` fait comme `j` : fichier d'options complet, biographie au
 début de la partie, reprise de la partie sauvegardée s'il y en a une.
+
+### La quête du rôle
+
+`Q` liste les cinq niveaux de quête du rôle (`dat/Val-strt.lua`,
+`-fila`, `-loca`, `-filb`, `-goal` pour la Valkyrie) et ouvre celui
+choisi dans l'éditeur de cartes [nhmapedit](../NetHack_MapEditor) : dans
+une fenêtre tmux « carte-strt » quand l'éditeur tourne dans tmux, sinon
+en plein écran jusqu'à sa fermeture. De quoi adapter l'accueil, le
+repaire ou le but au rôle modifié ; `m` puis `U` pour y jouer. Le script
+de nhmapedit est cherché dans le dossier voisin `../NetHack_MapEditor`,
+ou donné par `cartes =` dans la section `[jeu]` de la configuration.
 
 ## Du projet au jeu (rôles modifiés)
 

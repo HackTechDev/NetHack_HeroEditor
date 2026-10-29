@@ -19,7 +19,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | 4. Rôles : nouvelles règles | 1 / 9 | 4.1 à 4.3, 4.5 à 4.9 |
 | 5. Tuiles | 4 / 4 | — |
 | 6. Projets et fichiers | 0 / 3 | tout |
-| 7. Liens avec les autres outils | 2 / 3 | 7.3 |
+| 7. Liens avec les autres outils | 3 / 3 | — |
 | 8. Qualité du projet | 0 / 5 | tout |
 
 Prochaine étape conseillée : les **compétences** du rôle (4.1), qui
@@ -217,9 +217,10 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
    proposés dans « Animal imposé » ; l'intégration écrit leur `PM_…`
    dans l'entrée du rôle et refuse un monstre absent des sources.
    Vérifié en jeu : « robot de sécurité apprivoisé » au départ.
-3. **Quête du rôle** **[gros]**. Ouvrir dans l'éditeur de cartes les
-   niveaux de quête du rôle (`dat/Val-*.lua`…) pour les adapter au rôle
-   modifié.
+3. **Quête du rôle** **[gros]** — ✅ **Fait**. `Q` liste les niveaux
+   de quête du rôle (`dat/<code>-strt/fila/loca/filb/goal.lua`) et ouvre
+   le niveau choisi dans nhmapedit (fenêtre tmux « carte-… », ou plein
+   écran) ; script réglable par `cartes =` dans `[jeu]`.
 
 ## 8. Qualité du projet
 

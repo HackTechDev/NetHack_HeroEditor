@@ -47,6 +47,9 @@ def load(path):
         elif key == "make":
             # options de make (« -j8 WANT_WIN_ALL=1 ») ; défaut : -jN
             cfg["make"] = val
+        elif key == "cartes":
+            # éditeur de cartes pour Q (défaut : ../NetHack_MapEditor)
+            cfg["maps"] = os.path.expanduser(val)
         elif key == "tmux":
             # j dans un panneau tmux à côté de l'éditeur (dans tmux)
             if val.lower() not in YES:

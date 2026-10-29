@@ -53,6 +53,8 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   mode découverte ou wizard, conduites tenues.
 - Héros dans le lanceur : `--heros` (liste en JSON avec description et
   historique), `--jouer NOM` (partie normale sans l'éditeur).
+- Niveaux de quête du rôle (`dat/<code>-*.lua`) ouverts dans nhmapedit
+  (`Q`), dans une fenêtre tmux ou en plein écran.
 - Fichier d'options complet (votre configuration puis le héros, options
   redéfinies mises en commentaire, `windowtype` en tête) : utilisé par
   `j` (`NETHACKOPTIONS=@fichier`) et exportable par `x`.

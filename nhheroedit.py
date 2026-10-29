@@ -97,6 +97,7 @@ HELP = [
     _("  U            mettre à jour le jeu installé (make update)"),
     _("  j            jouer avec le héros (normal, découverte, wizard)"),
     _("  h            historique des parties du héros (xlogfile du jeu)"),
+    _("  Q            niveaux de quête du rôle dans nhmapedit"),
     "",
     _("Projet :"),
     _("  p            fusionner un projet, exporter ou importer un héros,"),
@@ -2138,6 +2139,7 @@ class Editor(Popups, Game):
             "x": self.export_rc, "I": self.integrate,
             "R": self.sources_menu, "m": self.make, "U": self.make_update,
             "j": self.play, "h": self.show_history,
+            "Q": lambda: self.hero() and self.edit_quest(),
         }
         while True:
             self.autosave()
