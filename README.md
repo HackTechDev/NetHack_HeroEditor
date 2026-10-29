@@ -193,6 +193,22 @@ score, niveau, cause de la fin dans la langue du jeu (« tuée par un
 chien errant »), tours, profondeur, conduites tenues. L'aperçu en
 donne le résumé (nombre de parties, record).
 
+### Depuis le lanceur
+
+Le [lanceur](../Nethack_Launcher) liste les héros du projet sous
+l'entrée de l'éditeur (clé `heros = oui` de sa section) : une ligne
+« ↳ Jack-in : Kestrel » par héros, avec son rôle, sa race et son
+historique en description, qui lance la partie sans ouvrir l'éditeur.
+Il s'appuie sur deux commandes, utilisables aussi à la main :
+
+```sh
+./nhheroedit.sh [projet.json] --heros         # héros en JSON
+./nhheroedit.sh [projet.json] --jouer Kestrel # partie normale
+```
+
+`--jouer` fait comme `j` : fichier d'options complet, biographie au
+début de la partie, reprise de la partie sauvegardée s'il y en a une.
+
 ## Du projet au jeu (rôles modifiés)
 
 1. **`I` — intégrer.** L'éditeur vérifie les rôles, contrôle les

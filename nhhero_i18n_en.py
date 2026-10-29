@@ -945,8 +945,8 @@ EN = {
         "0 to 100000; empty = the game's",
     'Valeur invalide : 0 à 100000':
         'Invalid value: 0 to 100000',
-    "nhheroedit — éditeur de héros pour NetHack 5.0 (thème Night City), en\nmode terminal.\n\nUsage : python3 nhheroedit.py [projet.json] [--src DOSSIER_DES_SOURCES]\n\nUn héros, c'est un nom, un rôle, une race, un sexe, un alignement, un\nanimal… : « j » lance le jeu avec lui. Les règles de départ de son rôle\n(inventaire, or, intrinsèques, attributs, PV, titres de rang, dieux,\nraces permises, tuile) se modifient aussi : « I » les intègre aux\nsources du jeu, « m » compile, « U » met à jour le jeu installé.\nAppuyez sur « ? » pour l'aide.":
-        'nhheroedit — hero editor for NetHack 5.0 (Night City theme), in\nterminal mode.\n\nUsage: python3 nhheroedit.py [project.json] [--src SOURCE_DIRECTORY]\n\nA hero is a name, a role, a race, a gender, an alignment, a pet…: « j »\nstarts the game with them. The starting rules of their role (inventory,\ngold, intrinsics, attributes, HP, rank titles, gods, allowed races,\ntile) can be changed too: « I » integrates them into the game sources,\n« m » compiles, « U » updates the installed game.\nPress « ? » for help.',
+    "nhheroedit — éditeur de héros pour NetHack 5.0 (thème Night City), en\nmode terminal.\n\nUsage : python3 nhheroedit.py [projet.json] [--src DOSSIER_DES_SOURCES]\n        python3 nhheroedit.py [projet.json] --heros     (liste en JSON)\n        python3 nhheroedit.py [projet.json] --jouer NOM (partie normale)\n\nUn héros, c'est un nom, un rôle, une race, un sexe, un alignement, un\nanimal… : « j » lance le jeu avec lui. Les règles de départ de son rôle\n(inventaire, or, intrinsèques, attributs, PV, titres de rang, dieux,\nraces permises, tuile) se modifient aussi : « I » les intègre aux\nsources du jeu, « m » compile, « U » met à jour le jeu installé.\nAppuyez sur « ? » pour l'aide.":
+        'nhheroedit — hero editor for NetHack 5.0 (Night City theme), in\nterminal mode.\n\nUsage: python3 nhheroedit.py [project.json] [--src SOURCE_DIRECTORY]\n       python3 nhheroedit.py [project.json] --heros     (JSON list)\n       python3 nhheroedit.py [project.json] --jouer NAME (normal game)\n\nA hero is a name, a role, a race, a gender, an alignment, a pet…: « j »\nstarts the game with them. The starting rules of their role (inventory,\ngold, intrinsics, attributes, HP, rank titles, gods, allowed races,\ntile) can be changed too: « I » integrates them into the game sources,\n« m » compiles, « U » updates the installed game.\nPress « ? » for help.',
     'titre « %s » : traduit autrement pour le rôle %s (une seule traduction possible)':
         'title « %s »: translated differently for the role %s (only one translation is possible)',
     "titre « %s » : le jeu l'emploie déjà (%s) ; sa traduction y changera aussi — un autre titre anglais l'évite":
@@ -1247,4 +1247,14 @@ EN = {
         '  24-bit colors',
     '  couleurs approchées':
         '  approximate colors',
+    'aucune partie':
+        'no games',
+    'parties : %d, record %s ; dernière : %s':
+        'games: %d, best %s; last: %s',
+    'Héros inconnu dans %s : %s':
+        'Unknown hero in %s: %s',
+    'Héros incomplet : %s':
+        'Incomplete hero: %s',
+    'Jeu introuvable : indiquez son dossier avec NHHEROEDIT_HACKDIR.':
+        'Game not found: give its directory with NHHEROEDIT_HACKDIR.',
 }

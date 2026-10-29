@@ -579,6 +579,28 @@ class TestHistory(unittest.TestCase):
         self.assertEqual(G.death_text({"death": "quit"}, names, "fr"),
                          "a abandonné")
 
+    @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
+    def test_launcher(self):
+        g = I.GameData(SRC)
+        h = D.normalize({"name": "Kestrel", "role": "Valkyrie",
+                         "race": "human", "gender": "female",
+                         "align": "neutral"})
+        blank = D.normalize({"name": ""})
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, "xlogfile"), "w") as f:
+                f.write(self.XLOG % {"uid": os.getuid()})
+            out = G.launcher_heroes([h, blank], g, d, "fr")
+            self.assertEqual(len(out), 1)
+            self.assertEqual(out[0]["name"], "Kestrel")
+            self.assertFalse(out[0]["save"])
+            self.assertIn("parties : 2, record 120 ; dernière : a "
+                          "abandonné", out[0]["description"])
+            os.mkdir(os.path.join(d, "save"))
+            open(os.path.join(d, "save", G.save_base("Kestrel")), "w").close()
+            self.assertTrue(G.launcher_heroes([h], g, d)[0]["save"])
+        self.assertIn("aucune partie",
+                      G.launcher_heroes([h], g, None)[0]["description"])
+
 
 class TestProject(unittest.TestCase):
     def test_save_load(self):
@@ -616,9 +638,13 @@ class TestProject(unittest.TestCase):
         self.assertEqual(len(errs), 1)
 
     def test_args(self):
-        p, s = E.parse_args(["x.json", "--src", "/tmp"])
+        p, s, a = E.parse_args(["x.json", "--src", "/tmp"])
         self.assertTrue(p.endswith("x.json"))
         self.assertEqual(s, "/tmp")
+        self.assertIsNone(a)
+        self.assertEqual(E.parse_args(["--heros"])[2], ("heros",))
+        self.assertEqual(E.parse_args(["--jouer", "Kestrel"])[2],
+                         ("jouer", "Kestrel"))
 
 
 if __name__ == "__main__":

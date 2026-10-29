@@ -3,6 +3,8 @@
 mode terminal.
 
 Usage : python3 nhheroedit.py [projet.json] [--src DOSSIER_DES_SOURCES]
+        python3 nhheroedit.py [projet.json] --heros     (liste en JSON)
+        python3 nhheroedit.py [projet.json] --jouer NOM (partie normale)
 
 Un héros, c'est un nom, un rôle, une race, un sexe, un alignement, un
 animal… : « j » lance le jeu avec lui. Les règles de départ de son rôle
@@ -2158,17 +2160,23 @@ class Editor(Popups, Game):
 
 
 def parse_args(argv, config=None):
-    """(projet, sources) : ligne de commande, puis NHHEROEDIT_SRC, puis
-    la configuration, puis les valeurs par défaut."""
+    """(projet, sources, action) : ligne de commande, puis NHHEROEDIT_SRC,
+    puis la configuration, puis les valeurs par défaut. action : None
+    (l'éditeur), ("heros",) ou ("jouer", nom), pour le lanceur."""
     config = config or {}
     project = config.get("project", DEFAULT_PROJECT)
     src = os.environ.get("NHHEROEDIT_SRC") or config.get("src", DEFAULT_SRC)
+    action = None
     args = list(argv)
     while args:
         a = args.pop(0)
         if a in ("-h", "--help"):
             print(_(__doc__.strip()))
             sys.exit(0)
+        elif a == "--heros":
+            action = ("heros",)
+        elif a == "--jouer" and args:
+            action = ("jouer", args.pop(0))
         elif a == "--src" and args:
             src = args.pop(0)
         elif a.startswith("--src="):
@@ -2177,13 +2185,58 @@ def parse_args(argv, config=None):
             sys.exit(_("Option inconnue : %s (voir --help)") % a)
         else:
             project = a
-    return os.path.abspath(project), os.path.abspath(src)
+    return os.path.abspath(project), os.path.abspath(src), action
+
+
+def cli_heroes(project, src, config):
+    """--heros : héros du projet en JSON, pour le lanceur."""
+    heroes = P.read_project(project)[0] if os.path.isfile(project) else []
+    hackdir = G.find_hackdir(config, src)
+    print(json.dumps({"project": project, "hackdir": hackdir,
+                      "heroes": G.launcher_heroes(
+                          heroes, I.GameData(src), hackdir,
+                          detect_theme(config))},
+                     ensure_ascii=False, indent=1))
+    return 0
+
+
+def cli_play(project, src, config, name):
+    """--jouer NOM : partie normale avec le héros, sans l'éditeur (comme
+    j : options complètes, biographie)."""
+    heroes = P.read_project(project)[0] if os.path.isfile(project) else []
+    h = next((x for x in heroes if x["name"] == name), None)
+    if not h:
+        sys.exit(_("Héros inconnu dans %s : %s") % (project, name))
+    g = I.GameData(src)
+    role, race = g.role(h["role"]), g.race(h["race"])
+    errs = [m for gr, m in D.validate(h, role, race, {}, g.objects)
+            if gr == "erreur"]
+    if errs:
+        sys.exit(_("Héros incomplet : %s") % "; ".join(errs))
+    d = G.find_hackdir(config, src)
+    if not d:
+        sys.exit(_("Jeu introuvable : indiquez son dossier avec "
+                   "NHHEROEDIT_HACKDIR."))
+    try:
+        rc = G.write_full_rc(G.play_rc_path(name), h, role, race, g.names,
+                             detect_theme(config))
+    except OSError:
+        rc = None
+    return subprocess.call(G.game_command(d, h, role, race, "", rc),
+                           shell=True)
 
 
 def main(argv=None):
     config, errs = C.load(C.default_path())
-    project, src = parse_args(sys.argv[1:] if argv is None else argv,
-                              config)
+    project, src, action = parse_args(
+        sys.argv[1:] if argv is None else argv, config)
+    try:
+        if action == ("heros",):
+            return cli_heroes(project, src, config)
+        if action:
+            return cli_play(project, src, config, action[1])
+    except (OSError, ValueError, P.ProjectError) as e:
+        sys.exit(str(e))
     os.environ.setdefault("ESCDELAY", "25")
     if "mouse" in config:
         os.environ.setdefault("NHHEROEDIT_MOUSE", "1" if config["mouse"]
@@ -2203,4 +2256,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

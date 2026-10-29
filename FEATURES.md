@@ -51,6 +51,8 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
 - Historique des parties du héros (`xlogfile`) : résumé dans l'aperçu,
   détail par partie avec la fin traduite par les catalogues du jeu,
   mode découverte ou wizard, conduites tenues.
+- Héros dans le lanceur : `--heros` (liste en JSON avec description et
+  historique), `--jouer NOM` (partie normale sans l'éditeur).
 - Fichier d'options complet (votre configuration puis le héros, options
   redéfinies mises en commentaire, `windowtype` en tête) : utilisé par
   `j` (`NETHACKOPTIONS=@fichier`) et exportable par `x`.

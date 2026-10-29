@@ -419,6 +419,55 @@ def death_text(rec, names, theme="cyber"):
     return death
 
 
+def find_hackdir(config, src):
+    """Dossier du jeu installé : NHHEROEDIT_HACKDIR, configuration,
+    ~/nh/install/…, puis playground des sources."""
+    for d in (os.environ.get("NHHEROEDIT_HACKDIR", ""),
+              config.get("hackdir", ""), DEFAULT_HACKDIR,
+              os.path.join(src, "playground")):
+        if d and os.access(os.path.join(d, "nethack"), os.X_OK):
+            return d
+    return None
+
+
+def hero_line(h, g, theme="cyber"):
+    """« Solo humaine, chaotique »."""
+    role, race = g.role(h["role"]), g.race(h["race"])
+    if not role or not race:
+        return "%s %s" % (h["role"], h["race"])
+    return "%s %s, %s" % (g.names.role(role, h["gender"], theme),
+                          g.names.race(race, h["gender"], theme),
+                          D.ALIGN_FR[h["align"]])
+
+
+def history_line(games, names, theme="cyber"):
+    """Résumé des parties du héros, pour le lanceur."""
+    if not games:
+        return _("aucune partie")
+    s = games_summary(games)
+    return _("parties : %d, record %s ; dernière : %s") % (
+        s["count"], "—" if s["best"] is None else s["best"],
+        death_text(games[-1], names, theme))
+
+
+def launcher_heroes(heroes, g, hackdir, theme="cyber"):
+    """Héros du projet pour le lanceur (nhheroedit --heros) : nom,
+    description (rôle, race, historique) et partie sauvegardée."""
+    records = read_xlog(hackdir) if hackdir else []
+    out = []
+    for h in heroes:
+        if not h["name"]:
+            continue
+        games = hero_games(records, h["name"])
+        out.append({
+            "name": h["name"],
+            "description": "%s · %s" % (hero_line(h, g, theme),
+                                        history_line(games, g.names, theme)),
+            "save": bool(hackdir and saved_game(hackdir, h["name"])),
+        })
+    return out
+
+
 class Game:
     game_pane = None
     game_where = ""
@@ -459,14 +508,7 @@ class Game:
         self.game_pane, self.game_where = pane, where
         return where
     def hackdir(self):
-        """Dossier du jeu installé : NHHEROEDIT_HACKDIR, configuration,
-        ~/nh/install/…, puis playground des sources."""
-        for d in (os.environ.get("NHHEROEDIT_HACKDIR", ""),
-                  self.config.get("hackdir", ""), DEFAULT_HACKDIR,
-                  os.path.join(self.src, "playground")):
-            if d and os.access(os.path.join(d, "nethack"), os.X_OK):
-                return d
-        return None
+        return find_hackdir(self.config, self.src)
 
     def games(self, name):
         """Parties du héros name (xlogfile relu quand il change)."""
@@ -646,16 +688,15 @@ class Game:
                         "Rôle, race,") % h["name"],
                       _("sexe, alignement et règles du rôle sont bien ceux "
                         "du héros."), ""]
-        _env, full = game_env(d, [])
-        if not full and not rc:
-            lines += [_("NETHACKOPTIONS désigne un fichier : seuls le nom, "
-                        "le rôle"),
-                      _("et la race sont transmis (ligne de commande)."), ""]
         try:
             rc = write_full_rc(play_rc_path(h["name"]), h, role, race,
                                g.names, self.theme)
         except OSError:
             rc = None
+        if not rc and not game_env(d, [])[1]:
+            lines += [_("NETHACKOPTIONS désigne un fichier : seuls le nom, "
+                        "le rôle"),
+                      _("et la race sont transmis (ligne de commande)."), ""]
         lines += ["  " + o for o in D.hero_options(h, role, race)]
         disp = D.display_options(h)
         if h["windowtype"] or disp:

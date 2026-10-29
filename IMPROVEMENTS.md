@@ -19,7 +19,7 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
 | 5. Tuiles | 4 / 4 | — |
 | 6. Projets et fichiers | 0 / 3 | tout |
-| 7. Liens avec les autres outils | 0 / 3 | tout |
+| 7. Liens avec les autres outils | 1 / 3 | 7.2, 7.3 |
 | 8. Qualité du projet | 0 / 5 | tout |
 
 Prochaine étape conseillée : les **compétences** du rôle (4.1), qui
@@ -207,9 +207,11 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
 
 ## 7. Liens avec les autres outils
 
-1. **Héros dans le lanceur** **[moyen]**. Lister les héros du projet
-   dans le lanceur et jouer l'un d'eux directement (« Jack-in :
-   Kestrel »), avec son historique.
+1. **Héros dans le lanceur** **[moyen]** — ✅ **Fait**. Avec
+   `heros = oui` dans sa section, le lanceur ajoute sous l'éditeur une
+   ligne « ↳ Jack-in : Kestrel » par héros (`nhheroedit --heros` :
+   rôle, race, parties, record, dernière fin, partie en pause), qui
+   lance le jeu par `nhheroedit --jouer Kestrel`.
 2. **Robots compagnons** **[moyen]**. Choisir comme animal de départ un
    robot créé avec nhmonedit (champ `petnum`, voir 4.4).
 3. **Quête du rôle** **[gros]**. Ouvrir dans l'éditeur de cartes les
