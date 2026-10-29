@@ -6,3 +6,5 @@ sauvegardes/
 *.tmp
 *.nhheroedit-tmp
 *.nhheroedit-autosave
+# notes personnelles, hors du dépôt
+claude_task.md
