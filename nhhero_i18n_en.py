@@ -1005,4 +1005,72 @@ EN = {
         'their game thus stays apart from the one of « %s ». Role, race,',
     'sexe, alignement et règles du rôle sont bien ceux du héros.':
         "gender, alignment and role rules are indeed the hero's.",
+    'sans manger':
+        'foodless',
+    'végétalien':
+        'vegan',
+    'végétarien':
+        'vegetarian',
+    'athée':
+        'atheist',
+    'sans arme':
+        'weaponless',
+    'pacifiste':
+        'pacifist',
+    'illettré':
+        'illiterate',
+    "sans polymorphie d'objet":
+        'polyless',
+    'sans se polymorpher':
+        'polyselfless',
+    'sans vœu':
+        'wishless',
+    "sans vœu d'artefact":
+        'artiwishless',
+    'sans génocide':
+        'genocideless',
+    'sans Elbereth':
+        'elberethless',
+    'Sokoban sans tricher':
+        'Sokoban without cheating',
+    'aveugle':
+        'blind',
+    'nudiste':
+        'nudist',
+    'sans bones':
+        'bonesless',
+    'sans animal':
+        'petless',
+    'sans relance':
+        'unrerolled',
+    'a abandonné':
+        'quit',
+    "s'est échappé":
+        'escaped',
+    "s'est échappée":
+        'escaped',
+    'est monté au ciel':
+        'ascended',
+    'est montée au ciel':
+        'ascended',
+    'découverte':
+        'explore',
+    'Historique de %s':
+        'History of %s',
+    'Aucune partie terminée sous ce nom dans le xlogfile du jeu.':
+        "No game finished under this name in the game's xlogfile.",
+    "(les parties sauvegardées n'y sont pas)":
+        '(saved games are not in it)',
+    '%d partie(s) — record %s — niveau le plus profond %d — victoires %d':
+        '%d game(s) — high score %s — deepest level %d — ascensions %d',
+    '%s tours':
+        '%s turns',
+    'profondeur max %s':
+        'max depth %s',
+    'conduites : %s':
+        'conducts: %s',
+    '  h            historique des parties du héros (xlogfile du jeu)':
+        "  h            history of the hero's games (game's xlogfile)",
+    'Parties : %d, record %s (h)':
+        'Games: %d, high score %s (h)',
 }

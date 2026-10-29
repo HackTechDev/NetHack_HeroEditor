@@ -92,6 +92,7 @@ HELP = [
     _("  m            compiler (make)"),
     _("  U            mettre à jour le jeu installé (make update)"),
     _("  j            jouer avec le héros (normal, découverte, wizard)"),
+    _("  h            historique des parties du héros (xlogfile du jeu)"),
     "",
     _("Projet :"),
     _("  p            fusionner un projet, exporter ou importer un héros,"),
@@ -821,7 +822,15 @@ class Editor(Popups, Game):
             st, sa = self.role_status(hero["role"])
             put(scr, yy, x + 2, _("Rôle : "), curses.A_DIM)
             put(scr, yy, x + 9, st, sa, cw - 7)
-            yy += 2
+            yy += 1
+            games = self.games(hero["name"])
+            if games:
+                s = G.games_summary(games)
+                put(scr, yy, x + 2, _("Parties : %d, record %s (h)") % (
+                    s["count"], "—" if s["best"] is None else s["best"]),
+                    curses.A_DIM, cw)
+                yy += 1
+            yy += 1
             for n in g.kit_names(role):
                 for o in self.kit(hero, n):
                     if yy >= bottom - 3:
@@ -1991,7 +2000,7 @@ class Editor(Popups, Game):
             "v": self.show_validation, "c": self.show_code,
             "x": self.export_rc, "I": self.integrate,
             "R": self.sources_menu, "m": self.make, "U": self.make_update,
-            "j": self.play,
+            "j": self.play, "h": self.show_history,
         }
         while True:
             self.autosave()

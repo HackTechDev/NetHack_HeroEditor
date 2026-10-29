@@ -38,6 +38,9 @@ touchés, voir le [README](README.md) ou `?` dans l'éditeur.
   wizard ; jeu plus ancien que les sources ; mode refusé par `WIZARDS`
   ou `EXPLORERS` de `sysconf` ; `NETHACKOPTIONS` qui désigne un
   fichier).
+- Historique des parties du héros (`xlogfile`) : résumé dans l'aperçu,
+  détail par partie avec la fin traduite par les catalogues du jeu,
+  mode découverte ou wizard, conduites tenues.
 - Export des options en `.nethackrc` ; export et import d'un héros avec
   les changements de son rôle (`.nhhero.json`) ; fusion de projets.
 

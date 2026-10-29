@@ -1,6 +1,7 @@
 """Jouer avec un héros : NetHack lancé avec les options du héros (nom,
 rôle, race, sexe, alignement, animal, fruit, conduites), en partie
-normale, en mode découverte ou en mode wizard.
+normale, en mode découverte ou en mode wizard ; historique de ses
+parties (xlogfile du jeu).
 
 Mixin de l'éditeur : self.config, self.src, self.hero(), self.game(),
 self.msg, self.menu(), self.confirm(), self.message_box() et
@@ -12,6 +13,8 @@ import os
 import pwd
 import re
 import shlex
+
+import curses
 
 import nhhero_data as D
 import nhhero_install as I
@@ -146,6 +149,136 @@ def mode_allowed(hackdir, mode, name):
     return user in who.split(), who
 
 
+# --- historique des parties (xlogfile) ------------------------------------
+
+# conduites tenues (champ conductX)
+CONDUCT_NAMES = {
+    "foodless": _("sans manger"), "vegan": _("végétalien"),
+    "vegetarian": _("végétarien"), "atheist": _("athée"),
+    "weaponless": _("sans arme"), "pacifist": _("pacifiste"),
+    "illiterate": _("illettré"), "polyless": _("sans polymorphie d'objet"),
+    "polyselfless": _("sans se polymorpher"), "wishless": _("sans vœu"),
+    "artiwishless": _("sans vœu d'artefact"),
+    "genocideless": _("sans génocide"), "elberethless": _("sans Elbereth"),
+    "sokoban": _("Sokoban sans tricher"), "blind": _("aveugle"),
+    "nudist": _("nudiste"), "bonesless": _("sans bones"),
+    "petless": _("sans animal"), "unrerolled": _("sans relance"),
+}
+# fins sans tueur : (masculin, féminin)
+SIMPLE_ENDS = {
+    "quit": (_("a abandonné"), _("a abandonné")),
+    "escaped": (_("s'est échappé"), _("s'est échappée")),
+    "ascended": (_("est monté au ciel"), _("est montée au ciel")),
+}
+
+
+def read_xlog(hackdir):
+    """Parties terminées du jeu, dans l'ordre : liste de dicts (champs du
+    xlogfile, « points » et « flags » en entiers)."""
+    try:
+        with open(os.path.join(hackdir, "xlogfile"), encoding="utf-8",
+                  errors="replace") as f:
+            lines = f.read().splitlines()
+    except OSError:
+        return []
+    out = []
+    for line in lines:
+        rec = dict(c.split("=", 1) for c in line.split("\t") if "=" in c)
+        try:
+            rec["points"] = int(rec["points"])
+            rec["flags"] = int(rec.get("flags", "0"), 0)
+        except (KeyError, ValueError):
+            continue
+        out.append(rec)
+    return out
+
+
+def hero_games(records, name, uid=None):
+    """Parties du héros name (même compte Unix)."""
+    uid = str(os.getuid() if uid is None else uid)
+    return [r for r in records
+            if r.get("name") == name and r.get("uid", uid) == uid]
+
+
+def game_mode(rec):
+    """"" pour une partie normale, sinon « wizard » ou « découverte »."""
+    return "wizard" if rec["flags"] & 1 else \
+        _("découverte") if rec["flags"] & 2 else ""
+
+
+def _int(rec, key):
+    try:
+        return int(rec.get(key, ""))
+    except ValueError:
+        return None
+
+
+def games_summary(games):
+    """Résumé : nombre, record (parties normales), profondeur maximale,
+    victoires."""
+    normal = [g for g in games if not game_mode(g)]
+    return {"count": len(games),
+            "best": max([g["points"] for g in normal], default=None),
+            "maxlvl": max([_int(g, "maxlvl") or 0 for g in games],
+                          default=0),
+            "ascended": sum(g.get("death") == "ascended" for g in games)}
+
+
+def _tr(names, theme, msgid, *ctxs):
+    """Traduction de msgid (premier contexte qui en a une), ou None."""
+    for ctx in ctxs:
+        for table in ((names.cyber, names.fr) if theme == "cyber"
+                      else (names.fr,)):
+            v = table.get((ctx, msgid))
+            if v and v not in ("m", "f"):
+                return v
+    return None
+
+
+def killer_text(names, theme, killer):
+    """« a kobold » → « un kobold » avec le catalogue du jeu."""
+    v = _tr(names, theme, killer, "killer")
+    if v:
+        return v
+    mo = re.match(r"^(a|an|the) (.+)$", killer)
+    if not mo:
+        return _tr(names, theme, killer, "monster") or killer
+    art, noun = mo.groups()
+    mon = _tr(names, theme, noun, "monster")
+    if not mon:
+        return killer
+    gender = [t.get(("gender", noun)) for t in
+              ((names.cyber, names.fr) if theme == "cyber" else (names.fr,))]
+    fem = next((x for x in gender if x), None) == "f"
+    if art != "the":
+        return ("une " if fem else "un ") + mon
+    if mon[:1].lower() in "aâàeéèêiîïoôuûyh":
+        return "l'" + mon
+    return ("la " if fem else "le ") + mon
+
+
+def death_text(rec, names, theme="cyber"):
+    """Fin de la partie, dans la langue du jeu (« tuée par un kobold »)."""
+    death = rec.get("death", "?")
+    if theme == "en":
+        return death
+    fem = rec.get("gender") == "Fem"
+    if death in SIMPLE_ENDS:
+        return SIMPLE_ENDS[death][fem]
+    v = _tr(names, theme, death, *(("feminine", None) if fem else (None,)))
+    if v:
+        return v
+    prefixes = sorted({m for c, m in names.fr if c == "killed by"},
+                      key=len, reverse=True)
+    for p in prefixes:
+        if death.startswith(p):
+            head = _tr(names, theme, p, *(("feminine killed by",
+                                           "killed by") if fem
+                                          else ("killed by",)))
+            return (head or p) + killer_text(names, theme, death[len(p):])
+    return death
+
+
 class Game:
     def hackdir(self):
         """Dossier du jeu installé : NHHEROEDIT_HACKDIR, configuration,
@@ -156,6 +289,58 @@ class Game:
             if d and os.access(os.path.join(d, "nethack"), os.X_OK):
                 return d
         return None
+
+    def games(self, name):
+        """Parties du héros name (xlogfile relu quand il change)."""
+        d = self.hackdir()
+        if not d:
+            return []
+        try:
+            mt = os.path.getmtime(os.path.join(d, "xlogfile"))
+        except OSError:
+            return []
+        cache = getattr(self, "_xlog", None)
+        if not cache or cache[0] != (d, mt):
+            self._xlog = cache = ((d, mt), read_xlog(d))
+        return hero_games(cache[1], name)
+
+    def show_history(self):
+        """h : historique des parties du héros."""
+        h = self.hero()
+        if not h:
+            return
+        games = self.games(h["name"])
+        if not games:
+            self.message_box(_("Historique de %s") % h["name"], [
+                _("Aucune partie terminée sous ce nom dans le xlogfile du "
+                  "jeu."), _("(les parties sauvegardées n'y sont pas)")])
+            return
+        s = games_summary(games)
+        names = self.game().names
+        lines = [(_("%d partie(s) — record %s — niveau le plus profond %d"
+                    " — victoires %d") % (
+                        s["count"], s["best"] if s["best"] is not None
+                        else "—", s["maxlvl"], s["ascended"]),
+                  curses.A_BOLD), ""]
+        for g in reversed(games):
+            date = g.get("deathdate", "")
+            date = "%s-%s-%s" % (date[:4], date[4:6], date[6:]) \
+                if len(date) == 8 else date or "?"
+            mode = game_mode(g)
+            lines.append(("%s  %7d pts  niv. %-2s  %s%s" % (
+                date, g["points"], g.get("deathlev", "?"),
+                death_text(g, names, self.theme),
+                "  [%s]" % mode if mode else ""),
+                curses.A_DIM if mode else 0))
+            details = [_("%s tours") % g.get("turns", "?"),
+                       _("profondeur max %s") % g.get("maxlvl", "?")]
+            kept = [CONDUCT_NAMES.get(c, c)
+                    for c in g.get("conductX", "").split(",") if c]
+            if kept:
+                details.append(_("conduites : %s") % ", ".join(kept))
+            lines.append(("            " + " · ".join(details),
+                          curses.A_DIM))
+        self.viewer(_("Historique de %s") % h["name"], lines)
 
     def outdated_game(self, hackdir):
         """Le jeu installé est-il plus ancien que les sources touchées ?"""

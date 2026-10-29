@@ -15,16 +15,15 @@ de ce que fait l'éditeur aujourd'hui est dans [FEATURES.md](FEATURES.md).
 |---|---|---|
 | 1. Limites connues | 6 / 6 | — |
 | 2. Vérification | 0 / 6 | tout |
-| 3. Héros et parties | 0 / 7 | tout |
+| 3. Héros et parties | 1 / 7 | 3.2 à 3.7 |
 | 4. Rôles : nouvelles règles | 0 / 9 | tout |
 | 5. Tuiles | 0 / 4 | tout |
 | 6. Projets et fichiers | 0 / 3 | tout |
 | 7. Liens avec les autres outils | 0 / 3 | tout |
 | 8. Qualité du projet | 0 / 5 | tout |
 
-Prochaines étapes conseillées : l'**historique des parties** du héros
-(3.1) et les **compétences** du rôle (4.1). Ensemble, elles rendent le
-héros « vivant » et complètent l'inventaire de départ.
+Prochaine étape conseillée : les **compétences** du rôle (4.1), qui
+complètent l'inventaire de départ.
 
 ## 1. Limites connues
 
@@ -107,10 +106,11 @@ Ce que l'éditeur fait mal ou ne vérifie pas aujourd'hui.
 
 ## 3. Héros et parties
 
-1. **Historique des parties du héros** **[moyen]**. Lire le `xlogfile`
-   du jeu (comme le lanceur) et montrer dans l'aperçu les parties
-   jouées sous ce nom : nombre, meilleur score, niveau atteint, cause
-   des morts, conduites tenues.
+1. **Historique des parties du héros** **[moyen]** — ✅ **Fait**. `h`
+   lit le `xlogfile` du jeu (comme le lanceur) : parties terminées sous
+   le nom du héros, avec date, score, niveau, fin traduite par les
+   catalogues du jeu, tours, profondeur et conduites tenues. L'aperçu
+   montre le nombre de parties et le record.
 2. **Jeu à côté de l'éditeur** **[facile]**. Comme `j` dans nhmonedit,
    ouvrir NetHack dans un panneau tmux plutôt qu'en plein écran, pour
    garder la fiche sous les yeux.

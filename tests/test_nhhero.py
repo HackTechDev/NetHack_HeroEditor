@@ -371,6 +371,39 @@ class TestGame(unittest.TestCase):
             self.assertTrue(G.mode_allowed(d, "-X", "Kai")[0])
 
 
+class TestHistory(unittest.TestCase):
+    XLOG = ("version=5.0.0\tpoints=120\tdeathlev=3\tmaxlvl=4\tuid=%(uid)d"
+            "\tname=Kestrel\tgender=Fem\tdeath=killed by a jackal\t"
+            "flags=0x0\tturns=900\tconductX=atheist,wishless\n"
+            "points=5\tuid=%(uid)d\tname=Kestrel\tdeath=quit\tflags=0x2\t"
+            "maxlvl=1\n"
+            "points=999\tuid=%(uid)d\tname=Autre\tdeath=quit\tflags=0\n"
+            "ligne abîmée\n")
+
+    def test_xlog(self):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, "xlogfile"), "w") as f:
+                f.write(self.XLOG % {"uid": os.getuid()})
+            recs = G.read_xlog(d)
+            self.assertEqual(len(recs), 3)
+            games = G.hero_games(recs, "Kestrel")
+            self.assertEqual([g["points"] for g in games], [120, 5])
+            self.assertEqual(G.hero_games(recs, "Kestrel", uid=1), [])
+            self.assertEqual(G.games_summary(games), {
+                "count": 2, "best": 120, "maxlvl": 4, "ascended": 0})
+            self.assertEqual(G.game_mode(games[1]), "découverte")
+        self.assertEqual(G.read_xlog("/nonexistent"), [])
+
+    @unittest.skipUnless(HAVE_SRC, "sources de NetHack absentes")
+    def test_death_text(self):
+        names = I.GameData(SRC).names
+        rec = {"death": "killed by a jackal", "gender": "Fem"}
+        self.assertEqual(G.death_text(rec, names, "fr"), "tuée par un chacal")
+        self.assertEqual(G.death_text(rec, names, "en"), "killed by a jackal")
+        self.assertEqual(G.death_text({"death": "quit"}, names, "fr"),
+                         "a abandonné")
+
+
 class TestProject(unittest.TestCase):
     def test_save_load(self):
         with tempfile.TemporaryDirectory() as d:

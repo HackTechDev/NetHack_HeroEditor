@@ -129,6 +129,12 @@ vraie) ; rôle, race, sexe, alignement et règles du rôle sont bien ceux
 du héros. `x` écrit les options dans `<nom>.nethackrc`, à recopier dans
 `~/.nethackrc`.
 
+`h` montre l'**historique des parties** du héros, lu dans le `xlogfile`
+du jeu (parties terminées sous son nom, même compte Unix) : date,
+score, niveau, cause de la fin dans la langue du jeu (« tuée par un
+chien errant »), tours, profondeur, conduites tenues. L'aperçu en
+donne le résumé (nombre de parties, record).
+
 ## Du projet au jeu (rôles modifiés)
 
 1. **`I` — intégrer.** L'éditeur vérifie les rôles, contrôle les
